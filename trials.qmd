@@ -1,0 +1,142 @@
+---
+title: "Clinical Trials Overview"
+pagetitle: "WISSPAR — Clinical Trials Overview"
+---
+
+Browse the pneumococcal vaccine clinical trials in the WISSPAR database. Each row
+is one trial; the table is built live from the same immunogenicity dataset that
+powers the [Graphical View](graphical-view.qmd). Search by trial number, sponsor,
+or vaccine, and click a column header to sort. For full protocol details, use the
+[trial lookup tool](https://wisspar.com/view).
+
+```{=html}
+<div class="trials-controls">
+  <input id="trials-search" type="search" placeholder="Search trial, sponsor, vaccine…" style="min-width:280px;" />
+  <select id="trials-phase"><option value="">All phases</option></select>
+  <select id="trials-sponsor"><option value="">All sponsors</option></select>
+</div>
+<div class="trials-count" id="trials-count"></div>
+<div style="overflow-x:auto;">
+<table id="trials-table">
+  <thead>
+    <tr>
+      <th data-key="study_id">Trial</th>
+      <th data-key="sponsor">Sponsor</th>
+      <th data-key="phase">Phase</th>
+      <th data-key="continents">Region</th>
+      <th data-key="vaccines">Vaccines</th>
+      <th data-key="nSerotypes">Serotypes</th>
+      <th data-key="assays">Assays</th>
+    </tr>
+  </thead>
+  <tbody></tbody>
+</table>
+</div>
+
+<script type="module">
+const DATA_URL = "data/wisspar_export.json";
+
+function naturalSort(a, b) {
+  return String(a).localeCompare(String(b), undefined, { numeric: true, sensitivity: "base" });
+}
+
+function aggregate(rows) {
+  const byTrial = new Map();
+  for (const r of rows) {
+    if (!r.study_id) continue;
+    let t = byTrial.get(r.study_id);
+    if (!t) {
+      t = { study_id: r.study_id, sponsor: r.sponsor || "", phases: new Set(),
+            continents: new Set(), vaccines: new Set(), serotypes: new Set(), assays: new Set() };
+      byTrial.set(r.study_id, t);
+    }
+    if (r.phase) t.phases.add(r.phase);
+    if (r.location_continent) t.continents.add(r.location_continent);
+    if (r.vaccine) t.vaccines.add(r.vaccine);
+    if (r.serotype) t.serotypes.add(r.serotype);
+    if (r.assay) t.assays.add(r.assay);
+  }
+  return [...byTrial.values()].map((t) => ({
+    study_id: t.study_id,
+    sponsor: t.sponsor,
+    phase: [...t.phases].sort(naturalSort).join(", "),
+    continents: [...t.continents].sort().join(", "),
+    vaccines: [...t.vaccines].sort(naturalSort).join(", "),
+    nSerotypes: t.serotypes.size,
+    assays: [...t.assays].sort().join(", "),
+  }));
+}
+
+function trialLink(id) {
+  return /^NCT/.test(id)
+    ? `<a href="https://clinicaltrials.gov/study/${id}" target="_blank" rel="noopener">${id}</a>`
+    : id;
+}
+
+(async function () {
+  const tbody = document.querySelector("#trials-table tbody");
+  const countEl = document.getElementById("trials-count");
+  let rows;
+  try {
+    const res = await fetch(DATA_URL);
+    rows = await res.json();
+  } catch (e) {
+    countEl.textContent = "Could not load trial data.";
+    return;
+  }
+  const trials = aggregate(rows);
+
+  // populate filter dropdowns
+  const phaseSel = document.getElementById("trials-phase");
+  const sponsorSel = document.getElementById("trials-sponsor");
+  [...new Set(rows.map((r) => r.phase).filter(Boolean))].sort(naturalSort)
+    .forEach((p) => phaseSel.add(new Option(p, p)));
+  [...new Set(trials.map((t) => t.sponsor).filter(Boolean))].sort(naturalSort)
+    .forEach((s) => sponsorSel.add(new Option(s, s)));
+
+  let sortKey = "study_id", sortDir = 1;
+  const search = document.getElementById("trials-search");
+
+  function render() {
+    const q = search.value.trim().toLowerCase();
+    const phase = phaseSel.value, sponsor = sponsorSel.value;
+    let view = trials.filter((t) => {
+      if (phase && !t.phase.split(", ").includes(phase)) return false;
+      if (sponsor && t.sponsor !== sponsor) return false;
+      if (q) {
+        const hay = `${t.study_id} ${t.sponsor} ${t.vaccines}`.toLowerCase();
+        if (!hay.includes(q)) return false;
+      }
+      return true;
+    });
+    view.sort((a, b) => {
+      const av = a[sortKey], bv = b[sortKey];
+      const cmp = typeof av === "number" && typeof bv === "number"
+        ? av - bv : naturalSort(av, bv);
+      return cmp * sortDir;
+    });
+    tbody.innerHTML = view.map((t) => `<tr>
+      <td>${trialLink(t.study_id)}</td>
+      <td>${t.sponsor}</td>
+      <td>${t.phase}</td>
+      <td>${t.continents}</td>
+      <td>${t.vaccines}</td>
+      <td>${t.nSerotypes}</td>
+      <td>${t.assays}</td>
+    </tr>`).join("");
+    countEl.textContent = `${view.length} of ${trials.length} trials`;
+  }
+
+  document.querySelectorAll("#trials-table th").forEach((th) => {
+    th.addEventListener("click", () => {
+      const key = th.getAttribute("data-key");
+      if (key === sortKey) sortDir *= -1;
+      else { sortKey = key; sortDir = 1; }
+      render();
+    });
+  });
+  [search, phaseSel, sponsorSel].forEach((el) => el.addEventListener("input", render));
+  render();
+})();
+</script>
+```

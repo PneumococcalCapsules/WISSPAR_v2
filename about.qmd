@@ -1,0 +1,52 @@
+---
+title: "About WISSPAR"
+---
+
+## What is WISSPAR?
+
+The **Worldwide Index of Serotype Specific Pneumococcal Antibody Responses
+(WISSPAR)** is a centralized platform housing data on immunogenicity from
+clinical trials of pneumococcal vaccines. Data are curated primarily from the
+outcome tables reported on
+[clinicaltrials.gov](https://clinicaltrials.gov){target="_blank"}, capturing
+product details, manufacturers, dosing schedules, age groups, geographic
+regions, assays (GMC and OPA), and serotype-specific antibody responses.
+
+## Using the data responsibly
+
+::: {.wisspar-caveat}
+Immunogenicity data should be compared and interpreted with caution. Data on
+immunogenicity **alone cannot** be used to infer differences in effectiveness
+between vaccines. These data need to be combined with information on the
+protective concentration of antibodies required to protect against each serotype
+in different populations for meaningful comparisons. Caution should be used when
+comparing data from trials conducted by different sponsors, which might use
+different assays.
+:::
+
+## Collaboration & funding
+
+WISSPAR is a collaboration between the **Yale School of Public Health** and the
+**Johns Hopkins Bloomberg School of Public Health**, with funding support from
+the **Bill & Melinda Gates Foundation**.
+
+### Contributors
+
+- Stephanie Perniciaro
+- Dominic Cooper-Wootton
+- Maria Deloria Knoll
+- Daniel M. Weinberger
+
+## Contact
+
+For inquiries, suggestions, or to request a custom private data-access portal for
+a specific application, please get in touch with the WISSPAR team at
+[daniel.weinberger@yale.edu](mailto:daniel.weinberger@yale.edu).
+
+::: {layout-ncol=3 style="align-items:center; margin-top:2rem;"}
+![Bill & Melinda Gates Foundation](assets/images/gates-foundation-logo.png){fig-alt="Bill & Melinda Gates Foundation logo"}
+
+![Johns Hopkins Bloomberg School of Public Health](assets/images/jhs.PNG){fig-alt="Johns Hopkins Bloomberg School of Public Health logo"}
+
+![Yale School of Public Health](assets/images/ysph-removebg-preview.png){fig-alt="Yale School of Public Health logo"}
+:::

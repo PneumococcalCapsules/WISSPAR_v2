@@ -1,0 +1,29 @@
+---
+title: "Videos & Resources"
+---
+
+Walkthroughs and tutorials for navigating the WISSPAR database and interpreting
+immunogenicity data.
+
+::: {.callout-note}
+Video tutorials are hosted on the WISSPAR site. If a video below does not load,
+you can also find the latest content on the
+[WISSPAR blog](https://blog.wisspar.com){target="_blank"}.
+:::
+
+## Getting started with WISSPAR
+
+<!-- Replace the src below with the current tutorial video URL (YouTube embed or MP4). -->
+<div class="ratio ratio-16x9" style="max-width:760px;margin:1rem 0;">
+  <iframe src="https://www.youtube-nocookie.com/embed/"
+          title="WISSPAR walkthrough"
+          allowfullscreen
+          referrerpolicy="strict-origin-when-cross-origin"></iframe>
+</div>
+
+## More resources
+
+- [Blog](https://blog.wisspar.com){target="_blank"} — updates, methods notes, and commentary.
+- [Graphical View](graphical-view.qmd) — the interactive immunogenicity comparison tool.
+- [Clinical Trials Overview](trials.qmd) — browse the trials in the database.
+- [Immunogenicity Data Export](https://wisspar.com/export) — download curated data.

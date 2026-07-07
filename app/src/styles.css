@@ -1,0 +1,135 @@
+/* Styles for the WISSPAR interactive tool. Scoped under #wisspar-app so it does
+   not conflict with Quarto/Bootstrap on the host page. */
+
+#wisspar-app {
+  --wf-border: #dbdbdb;
+  --wf-muted: #6b6b6b;
+  --wf-green: #009879;
+  --wf-blue: #3273dc;
+  font-family: BlinkMacSystemFont, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  color: #363636;
+}
+
+#wisspar-app .wf-root {
+  display: flex;
+  gap: 1.25rem;
+  align-items: flex-start;
+}
+
+#wisspar-app .wf-sidebar {
+  flex: 0 0 288px;
+  max-width: 288px;
+  background: #f7f9fb;
+  border: 1px solid var(--wf-border);
+  border-radius: 10px;
+  padding: 1rem;
+  max-height: 1400px;
+  overflow-y: auto;
+}
+
+#wisspar-app .wf-main { flex: 1 1 auto; min-width: 0; }
+
+#wisspar-app .wf-field { margin-bottom: 0.9rem; }
+#wisspar-app .wf-label {
+  display: block;
+  font-weight: 600;
+  font-size: 0.85rem;
+  margin-bottom: 0.3rem;
+}
+
+#wisspar-app .wf-select {
+  width: 100%;
+  padding: 0.4rem 0.5rem;
+  border: 1px solid var(--wf-border);
+  border-radius: 6px;
+  font-size: 0.85rem;
+  background: #fff;
+}
+
+#wisspar-app .wf-multi {
+  border: 1px solid var(--wf-border);
+  border-radius: 6px;
+  background: #fff;
+}
+#wisspar-app .wf-multi-actions {
+  display: flex;
+  gap: 0.35rem;
+  padding: 0.35rem 0.4rem;
+  border-bottom: 1px solid #eee;
+}
+#wisspar-app .wf-multi-actions button {
+  font-size: 0.72rem;
+  padding: 0.12rem 0.5rem;
+  border: 1px solid var(--wf-border);
+  border-radius: 4px;
+  background: #f5f5f5;
+  cursor: pointer;
+}
+#wisspar-app .wf-multi-actions button:hover { background: #ededed; }
+#wisspar-app .wf-multi-list {
+  max-height: 150px;
+  overflow-y: auto;
+  padding: 0.35rem 0.5rem;
+}
+
+#wisspar-app .wf-check {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.82rem;
+  padding: 0.1rem 0;
+  cursor: pointer;
+}
+#wisspar-app .wf-check input { margin: 0; }
+#wisspar-app .wf-standalone {
+  margin: 0.2rem 0 0.9rem;
+  font-weight: 600;
+}
+
+/* Tabs */
+#wisspar-app .wf-tablist {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  border-bottom: 2px solid var(--wf-green);
+  margin-bottom: 0.75rem;
+}
+#wisspar-app .wf-tab {
+  border: 1px solid var(--wf-border);
+  border-bottom: none;
+  background: #f5f5f5;
+  padding: 0.4rem 0.85rem;
+  font-size: 0.85rem;
+  border-radius: 6px 6px 0 0;
+  cursor: pointer;
+  color: #4a4a4a;
+}
+#wisspar-app .wf-tab.active {
+  background: var(--wf-green);
+  color: #fff;
+  border-color: var(--wf-green);
+  font-weight: 600;
+}
+#wisspar-app .wf-tabpanel { min-height: 360px; }
+
+#wisspar-app .wf-empty {
+  padding: 2.5rem 1rem;
+  text-align: center;
+  color: var(--wf-muted);
+  font-style: italic;
+}
+
+#wisspar-app .wf-infobox {
+  margin-top: 1rem;
+  padding: 0.85rem 1rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+#wisspar-app .wf-warn { background: #fffbeb; border-left: 5px solid #ffdd57; }
+#wisspar-app .wf-note { background: #eef6ff; border-left: 5px solid var(--wf-blue); }
+
+@media (max-width: 820px) {
+  #wisspar-app .wf-root { flex-direction: column; }
+  #wisspar-app .wf-sidebar { flex-basis: auto; max-width: none; width: 100%; }
+}

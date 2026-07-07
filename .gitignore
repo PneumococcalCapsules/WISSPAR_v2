@@ -1,0 +1,16 @@
+# Quarto
+/_site/
+/.quarto/
+
+# Node / build
+node_modules/
+app/node_modules/
+
+# Built interactive-tool bundle (produced by `npm run build` in app/, and in CI)
+/assets/app/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+
+**/*.quarto_ipynb

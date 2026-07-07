@@ -1,0 +1,28 @@
+---
+title: "Graphical View"
+pagetitle: "WISSPAR — Graphical View"
+page-layout: full
+include-in-header:
+  text: |
+    <script>document.addEventListener("DOMContentLoaded",function(){document.body.classList.add("graphical-view-page");});</script>
+---
+
+Interactively compare **immunogenicity** — antibody concentration (GMC) and
+functional activity (OPA) — across pneumococcal conjugate vaccines, serotypes,
+age groups, schedules, and sponsors. Use the filters on the left to build a
+comparison; the ratio tabs show head-to-head immunogenicity between a reference
+and a comparator product.
+
+::: {.wisspar-caveat}
+Data on immunogenicity alone cannot be used to infer differences in
+effectiveness between vaccines, and assays differ between sponsors. See
+[About](about.qmd) for guidance on interpreting these data.
+:::
+
+::: {#wisspar-app data-data-url="data/wisspar_export.json"}
+:::
+
+```{=html}
+<link rel="stylesheet" href="assets/app/wisspar.css">
+<script type="module" src="assets/app/wisspar.js"></script>
+```

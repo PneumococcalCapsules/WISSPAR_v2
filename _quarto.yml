@@ -1,0 +1,62 @@
+project:
+  type: website
+  output-dir: _site
+  resources:
+    - assets/**
+    - data/**
+
+website:
+  title: "WISSPAR"
+  description: "Worldwide Index of Serotype Specific Pneumococcal Antibody Responses — a curated immunogenicity database for pneumococcal vaccine clinical trials."
+  favicon: assets/images/logo-new.png
+  google-analytics: "G-4J2CKMGN5W"
+  navbar:
+    logo: assets/images/logo-new.png
+    logo-alt: "WISSPAR pneumococcus mascot"
+    title: "WISSPAR"
+    background: light
+    pinned: true
+    left:
+      - href: index.qmd
+        text: Home
+      - href: graphical-view.qmd
+        text: Graphical View
+      - href: trials.qmd
+        text: Clinical Trials
+      - href: resources.qmd
+        text: Videos
+      - href: about.qmd
+        text: About
+      - text: Blog
+        href: https://blog.wisspar.com
+    right:
+      - text: "Look up a trial"
+        href: https://wisspar.com/view
+      - text: "Data Export"
+        href: https://wisspar.com/export
+      - text: "Sign in"
+        href: https://wisspar.com/login
+  page-footer:
+    background: light
+    left: |
+      **WISSPAR** — a collaboration between the Yale School of Public Health and the
+      Johns Hopkins Bloomberg School of Public Health, funded by the Bill & Melinda
+      Gates Foundation. Contributors: Stephanie Perniciaro, Dominic Cooper-Wootton,
+      Maria Deloria Knoll, Daniel M. Weinberger.
+    right: |
+      <img src="/assets/images/gates-foundation-logo.png" alt="Bill & Melinda Gates Foundation" style="height:44px;margin:0 10px;">
+      <img src="/assets/images/jhs.PNG" alt="Johns Hopkins Bloomberg School of Public Health" style="height:44px;margin:0 10px;">
+      <img src="/assets/images/ysph-removebg-preview.png" alt="Yale School of Public Health" style="height:44px;margin:0 10px;">
+
+format:
+  html:
+    theme:
+      - cosmo
+      - theme.scss
+    css: custom.css
+    toc: false
+    grid:
+      body-width: 1100px
+    include-in-header:
+      text: |
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">

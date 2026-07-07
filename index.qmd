@@ -1,0 +1,72 @@
+---
+title: ""
+pagetitle: "WISSPAR — Immunogenicity database for pneumococcal vaccines"
+page-layout: full
+---
+
+::: {.wisspar-hero}
+![](assets/images/logo-new.png){.mascot fig-alt="WISSPAR pneumococcus mascot"}
+
+::: {.hero-text}
+# WISSPAR
+
+### A curated immunogenicity database
+
+The **W**orldwide **I**ndex of **S**erotype **S**pecific **P**neumococcal
+**A**ntibody **R**esponses is a centralized repository for immunogenicity data
+from pneumococcal vaccine clinical trials. Information is curated primarily from
+the outcome tables on
+[clinicaltrials.gov](https://clinicaltrials.gov){target="_blank"} and includes
+product details, manufacturers, dosing schedules, age groups, and geographic
+regions.
+:::
+:::
+
+## Explore the data
+
+::: {.wisspar-cards}
+
+[<span class="card-tag">Public dashboard</span><span class="card-icon">📈</span>
+<h3>Graphical View</h3>
+<p>Interactively compare antibody responses (GMC &amp; OPA) across vaccines and serotypes.</p>](graphical-view.qmd){.wisspar-card}
+
+[<span class="card-tag">Public dashboard</span><span class="card-icon">🧪</span>
+<h3>Clinical Trials Overview</h3>
+<p>Browse and search the pneumococcal vaccine trials in the database.</p>](trials.qmd){.wisspar-card}
+
+[<span class="card-tag">Analysis tool</span><span class="card-icon">🔎</span>
+<h3>Look up a trial</h3>
+<p>Find detailed records for an individual clinical trial.</p>](https://wisspar.com/view){.wisspar-card}
+
+[<span class="card-tag">Analysis tool</span><span class="card-icon">⬇️</span>
+<h3>Immunogenicity Data Export</h3>
+<p>Download curated immunogenicity data for your own analyses.</p>](https://wisspar.com/export){.wisspar-card}
+
+[<span class="card-tag">Resource</span><span class="card-icon">📝</span>
+<h3>Blog</h3>
+<p>Updates, methods notes, and commentary from the WISSPAR team.</p>](https://blog.wisspar.com){.wisspar-card}
+
+[<span class="card-tag">Resource</span><span class="card-icon">🎥</span>
+<h3>Videos</h3>
+<p>Walkthroughs and tutorials for using the database.</p>](resources.qmd){.wisspar-card}
+
+:::
+
+::: {.wisspar-caveat}
+**Interpret with caution.** Immunogenicity data should be compared and
+interpreted carefully. Data on immunogenicity alone **cannot** be used to infer
+differences in effectiveness between vaccines. These measurements need to be
+combined with information on the protective concentration of antibodies required
+to protect against each serotype in different populations for meaningful
+comparisons. Caution should also be used when comparing data from trials
+conducted by different sponsors, which may use different assays.
+:::
+
+## About the project
+
+WISSPAR is a collaborative partnership between the
+[Yale School of Public Health](https://ysph.yale.edu){target="_blank"} and the
+[Johns Hopkins Bloomberg School of Public Health](https://publichealth.jhu.edu){target="_blank"},
+funded by the [Bill & Melinda Gates Foundation](https://www.gatesfoundation.org){target="_blank"}.
+Custom private data-access portals are available upon request — see the
+[About page](about.qmd) to get in touch.
