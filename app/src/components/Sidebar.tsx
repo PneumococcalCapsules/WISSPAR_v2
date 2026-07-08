@@ -1,12 +1,41 @@
-// Sidebar filter controls, mirroring the dashboardSidebar in app.R.
+// Sidebar controls for the single-serotype head-to-head tool.
 
-import { AgeGroup, FilterState } from "../filters";
+import { useState } from "react";
+import { FilterState, Population } from "../filters";
+import { comparatorColor } from "../plot/chart";
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="wf-field">
       <label className="wf-label">{label}</label>
       {children}
+    </div>
+  );
+}
+
+function Section({
+  title,
+  children,
+  collapsible = false,
+  defaultOpen = true,
+}: {
+  title: string;
+  children: React.ReactNode;
+  collapsible?: boolean;
+  defaultOpen?: boolean;
+}) {
+  const [open, setOpen] = useState(defaultOpen);
+  return (
+    <div className={`wf-section${open ? " open" : ""}`}>
+      {collapsible ? (
+        <button type="button" className="wf-section-head wf-section-toggle" onClick={() => setOpen((o) => !o)}>
+          <span>{title}</span>
+          <span className="wf-caret" aria-hidden>{open ? "–" : "+"}</span>
+        </button>
+      ) : (
+        <div className="wf-section-head">{title}</div>
+      )}
+      {open && <div className="wf-section-body">{children}</div>}
     </div>
   );
 }
@@ -28,6 +57,7 @@ function MultiCheck({
         <button type="button" onClick={() => onChange([])}>None</button>
       </div>
       <div className="wf-multi-list">
+        {options.length === 0 && <div className="wf-multi-empty">None available</div>}
         {options.map((o) => (
           <label key={o} className="wf-check">
             <input
@@ -66,100 +96,121 @@ function Single({
   );
 }
 
+// Comparator picker: color-swatched checkboxes, ordered by the master vaccine list.
+function ComparatorPicker({
+  options,
+  selected,
+  refVax,
+  allVax,
+  onChange,
+}: {
+  options: string[];
+  selected: string[];
+  refVax: string;
+  allVax: string[];
+  onChange: (next: string[]) => void;
+}) {
+  const set = new Set(selected);
+  return (
+    <div className="wf-multi">
+      <div className="wf-multi-list">
+        {options.length === 0 && <div className="wf-multi-empty">No comparators share an arm with the reference.</div>}
+        {options.map((o) => (
+          <label key={o} className="wf-check">
+            <input
+              type="checkbox"
+              checked={set.has(o)}
+              onChange={(e) => {
+                const next = new Set(selected);
+                if (e.target.checked) next.add(o);
+                else next.delete(o);
+                onChange(allVax.filter((x) => next.has(x)));
+              }}
+            />
+            <span className="wf-swatch" style={{ background: comparatorColor(o, refVax, allVax) }} />
+            <span>{o}</span>
+          </label>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export interface SidebarProps {
   state: FilterState;
   set: (patch: Partial<FilterState>) => void;
+  allVax: string[];
   options: {
-    vax: string[];
     serotypes: string[];
-    fineAge: string[];
-    schedule: string[];
-    dose: string[];
-    phase: string[];
+    refOptions: string[];
+    comparators: string[];
+    schedules: string[];
+    phases: string[];
     sponsors: string[];
     studyIds: string[];
   };
 }
 
-export function Sidebar({ state, set, options }: SidebarProps) {
+const POPS: { value: Population; label: string }[] = [
+  { value: "Child", label: "Children" },
+  { value: "Adult", label: "Adults" },
+  { value: "All", label: "All" },
+];
+
+export function Sidebar({ state, set, allVax, options }: SidebarProps) {
   return (
     <aside className="wf-sidebar">
-      <Field label="Vaccine:">
-        <MultiCheck options={options.vax} selected={state.vax} onChange={(vax) => set({ vax })} />
-      </Field>
+      <Section title="Serotype">
+        <Field label="Serotype to view:">
+          <Single options={options.serotypes} value={state.serotype} onChange={(serotype) => set({ serotype })} />
+        </Field>
+      </Section>
 
-      <Field label="Serotypes:">
-        <MultiCheck
-          options={options.serotypes}
-          selected={state.serotypes}
-          onChange={(serotypes) => set({ serotypes })}
-        />
-      </Field>
+      <Section title="Products">
+        <Field label="Reference vaccine:">
+          <Single options={options.refOptions} value={state.refVax} onChange={(refVax) => set({ refVax })} />
+        </Field>
+        <Field label="Comparators:">
+          <ComparatorPicker
+            options={options.comparators}
+            selected={state.comparators}
+            refVax={state.refVax}
+            allVax={allVax}
+            onChange={(comparators) => set({ comparators })}
+          />
+        </Field>
+      </Section>
 
-      <Field label="Child or adults:">
-        <Single
-          options={["Child", "Adult"]}
-          value={state.age}
-          onChange={(age) => set({ age: age as AgeGroup })}
-        />
-      </Field>
+      <Section title="Population">
+        <div className="wf-seg-group" role="group" aria-label="Population">
+          {POPS.map((p) => (
+            <button
+              key={p.value}
+              type="button"
+              className={`wf-segbtn${state.population === p.value ? " active" : ""}`}
+              aria-pressed={state.population === p.value}
+              onClick={() => set({ population: p.value })}
+            >
+              {p.label}
+            </button>
+          ))}
+        </div>
+      </Section>
 
-      <Field label="Finer age categories:">
-        <MultiCheck
-          options={options.fineAge}
-          selected={state.fineAge}
-          onChange={(fineAge) => set({ fineAge })}
-        />
-      </Field>
-
-      <Field label="Schedule:">
-        <MultiCheck
-          options={options.schedule}
-          selected={state.schedule}
-          onChange={(schedule) => set({ schedule })}
-        />
-      </Field>
-
-      <Field label="Doses received and timing:">
-        <Single options={options.dose} value={state.dose} onChange={(dose) => set({ dose })} />
-      </Field>
-
-      <label className="wf-check wf-standalone">
-        <input
-          type="checkbox"
-          checked={state.pairedOnly}
-          onChange={(e) => set({ pairedOnly: e.target.checked })}
-        />
-        <span>Show paired observations only</span>
-      </label>
-
-      <Field label="Trial Phase:">
-        <MultiCheck options={options.phase} selected={state.phase} onChange={(phase) => set({ phase })} />
-      </Field>
-
-      <Field label="Reference vaccine:">
-        <Single options={state.vax} value={state.refVax} onChange={(refVax) => set({ refVax })} />
-      </Field>
-
-      <Field label="Comparator vaccine:">
-        <Single options={state.vax} value={state.compVax} onChange={(compVax) => set({ compVax })} />
-      </Field>
-
-      <Field label="Sponsor:">
-        <MultiCheck
-          options={options.sponsors}
-          selected={state.sponsors}
-          onChange={(sponsors) => set({ sponsors })}
-        />
-      </Field>
-
-      <Field label="Trial:">
-        <MultiCheck
-          options={options.studyIds}
-          selected={state.studyIds}
-          onChange={(studyIds) => set({ studyIds })}
-        />
-      </Field>
+      <Section title="Advanced filters" collapsible defaultOpen={false}>
+        <Field label="Schedule:">
+          <MultiCheck options={options.schedules} selected={state.schedules} onChange={(schedules) => set({ schedules })} />
+        </Field>
+        <Field label="Trial phase:">
+          <MultiCheck options={options.phases} selected={state.phases} onChange={(phases) => set({ phases })} />
+        </Field>
+        <Field label="Sponsor:">
+          <MultiCheck options={options.sponsors} selected={state.sponsors} onChange={(sponsors) => set({ sponsors })} />
+        </Field>
+        <Field label="Trial:">
+          <MultiCheck options={options.studyIds} selected={state.studyIds} onChange={(studyIds) => set({ studyIds })} />
+        </Field>
+      </Section>
     </aside>
   );
 }

@@ -1,0 +1,26 @@
+---
+title: "Hello World!"
+description: "Welcome to WISSPAR — a visualization and data curation tool for pneumococcal vaccine immunogenicity data."
+author: "The WISSPAR Team"
+date: "2022-06-22"
+categories: [updates]
+image: images/logo-new.png
+---
+
+Welcome to **WISSPAR**, the Worldwide Index of Serotype Specific Antibody
+Responses.
+
+WISSPAR is a visualization and data curation tool to help you compile and
+organize immunogenicity data from clinical trials of pneumococcal vaccines. The
+platform sources its information primarily from the outcome tables available on
+[clinicaltrials.gov](https://clinicaltrials.gov){target="_blank"} and presents
+this data in a searchable, customizable format that you can visualize and export
+for further research.
+
+WISSPAR is a collaborative effort between the
+[Yale School of Public Health](https://ysph.yale.edu){target="_blank"} and the
+[Johns Hopkins Bloomberg School of Public Health](https://publichealth.jhu.edu){target="_blank"},
+supported by the [Bill & Melinda Gates Foundation](https://www.gatesfoundation.org){target="_blank"}.
+Our goal is to support the research community by enabling comparisons and
+meta-analyses across different vaccine products, dosing schedules, and measured
+outcomes.

@@ -1,0 +1,90 @@
+---
+title: "Changes in Immunogenicity Across Three Generations of Pneumococcal Conjugate Vaccines: PCV7–PCV13–PCV20"
+description: "How serotype-specific antibody responses have shifted as pneumococcal conjugate vaccine valency increased from 7 to 13 to 20 serotypes."
+author: "Stephanie Perniciaro"
+date: "2023-03-20"
+categories: [updates]
+image: images/postprimaryIgG.png
+---
+
+The seven-valent pneumococcal conjugate vaccine (PCV7) represented a significant
+advancement in preventing serious pneumococcal disease in infants. The vaccine
+has since been upgraded with additional serotypes — expanding to 13 serotypes,
+then to 20 — to provide broader protection against invasive disease and to
+address serotype replacement concerns. However, researchers have observed that
+serotype-specific protection decreases as valency increases.
+
+Immunogenicity is assessed through two primary methods: ELISA assays measuring
+geometric mean concentrations of circulating antibody (IgG), and
+opsonophagocytic assays (OPA) measuring antibody functionality. The analysis
+below focuses on clinical trials using a **3+1 vaccination schedule** (three
+primary doses in the first year, plus a booster around age one year).
+
+## Original seven serotypes (present in all generations)
+
+These serotypes — **4, 6B, 9V, 14, 18C, 19F, and 23F** — appear across PCV7,
+PCV13, and PCV20.
+
+### Post-primary IgG GMCs
+
+Mean IgG responses to the seven original serotypes decrease as valency
+increases, with PCV20 producing consistently lower responses than PCV13. Despite
+lower antibody responses with increased valency, concentrations remain above the
+protective thresholds for preventing invasive disease.
+
+![Post-primary IgG GMCs for the seven original serotypes](images/postprimaryIgG.png)
+
+### Post-primary OPA GMTs
+
+![Post-primary OPA GMTs for the seven original serotypes](images/postprimary7stOPA.png)
+
+### Post-booster IgG GMCs
+
+This declining pattern continues following the booster dose.
+
+![Post-booster IgG GMCs for the seven original serotypes](images/postboosterIgG.png)
+
+### Post-booster OPA GMTs
+
+![Post-booster OPA GMTs for the seven original serotypes](images/postbooster7stOPA.png)
+
+## Additional serotypes in PCV13 and PCV20
+
+The six serotypes added in PCV13 — **1, 3, 5, 6A, 7F, and 19A** — show similar
+patterns when comparing PCV13 and PCV20 responses.
+
+### Post-primary IgG GMCs
+
+Following the primary series, PCV20 elicited diminished IgG responses to the six
+serotypes added in PCV13.
+
+![Post-primary IgG GMCs for the six serotypes added in PCV13](images/postprimary13IgG.png)
+
+### Post-primary OPA GMTs
+
+![Post-primary OPA GMTs for the six serotypes added in PCV13](images/postprimary13stOPA.png)
+
+### Post-booster IgG GMCs
+
+Similar patterns appeared in post-booster measurements.
+
+![Post-booster IgG GMCs for the six serotypes added in PCV13](images/postbooster13IgG.png)
+
+### Post-booster OPA GMTs
+
+![Post-booster OPA GMTs for the six serotypes added in PCV13](images/postbooster13stOPA.png)
+
+## Interpretation
+
+::: {.wisspar-caveat}
+Despite reduced responses with increased valency, all concentrations remain above
+the correlate of protection (typically 0.35–0.40 μg/mL). However, important
+considerations remain. The colonization protection threshold may be higher,
+potentially reducing the ability to prevent vaccine-targeted serotype circulation
+even when disease protection is maintained.
+:::
+
+Even if the protection is lower, the newer vaccines protect against more
+serotypes. Comprehensive modeling would be needed to determine the overall
+population-level benefits, weighing diminished immunogenicity against expanded
+serotype coverage.

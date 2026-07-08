@@ -1,12 +1,46 @@
-/* Mount point for the React interactive tool on the Graphical View page. */
-#wisspar-app {
-  min-height: 640px;
-  margin-top: 0.5rem;
-}
+/* ----- Graphical View: interactive dashboard layout & spacing ----- */
 
 /* Give the tool room to breathe — widen the body only on the graphical view. */
 body.graphical-view-page .page-columns {
   --bs-gutter-x: 0;
+}
+body.graphical-view-page main.content {
+  max-width: 1320px;
+  margin-inline: auto;
+  padding-inline: 1.25rem;
+}
+/* Tighten the default page title spacing above the dashboard. */
+body.graphical-view-page #title-block-header {
+  margin-bottom: 0.75rem;
+}
+
+/* Intro copy sits in a comfortable reading measure, not full width. */
+.dashboard-intro {
+  max-width: 760px;
+  margin: 0 0 1.5rem;
+  color: #4a4a4a;
+  line-height: 1.55;
+}
+.dashboard-intro .wisspar-caveat {
+  margin: 1rem 0 0;
+}
+
+/* Framed "shell" that holds the React tool. */
+.dashboard-shell {
+  background: #fff;
+  border: 1px solid #e6e6e6;
+  border-radius: 14px;
+  padding: 1.5rem;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, .05);
+}
+
+/* Mount point for the React interactive tool on the Graphical View page. */
+#wisspar-app {
+  min-height: 640px;
+}
+
+@media (max-width: 820px) {
+  .dashboard-shell { padding: 1rem; border-radius: 10px; }
 }
 
 /* Loading / error states rendered before React mounts */
@@ -51,3 +85,160 @@ body.graphical-view-page .page-columns {
 #trials-table th:hover { background: #ededed; }
 #trials-table tbody tr:hover { background: #fafafa; }
 .trials-count { color: #6b6b6b; font-size: 0.85rem; margin-top: 0.5rem; }
+
+/* ----- Look up a trial: search-tool result cards ----- */
+#lk-results { margin-top: 0.75rem; }
+.lk-card {
+  display: block;
+  width: 100%;
+  text-align: left;
+  border: 1px solid #e6e6e6;
+  border-radius: 10px;
+  margin-bottom: 0.6rem;
+  background: #fff;
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+  transition: box-shadow .12s ease, border-color .12s ease, transform .04s ease;
+}
+.lk-card:hover { border-color: #cdd8e6; box-shadow: 0 4px 16px rgba(0, 0, 0, .07); }
+.lk-card:active { transform: translateY(1px); }
+.lk-card:focus-visible { outline: 2px solid #2b6cb0; outline-offset: 2px; }
+.lk-card-top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem 0.75rem;
+}
+.lk-card-sub { display: block; margin-top: 0.35rem; color: #6b6b6b; font-size: 0.82rem; }
+.lk-nct { font-family: var(--bs-font-monospace, monospace); font-weight: 600; color: #2b6cb0; }
+.lk-title { flex: 1; min-width: 200px; font-weight: 500; }
+.lk-tags { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+.lk-tags--wrap { margin-top: 0.5rem; }
+.lk-tag {
+  font-size: 0.72rem;
+  padding: 0.12rem 0.5rem;
+  border-radius: 999px;
+  background: #eef2f7;
+  color: #445;
+  white-space: nowrap;
+}
+.lk-tag--status { background: #e6f4ea; color: #2f6f43; }
+.lk-tag--results { background: #fef3d7; color: #8a6100; }
+.lk-tag--key { background: #f0eef7; color: #55496b; }
+.lk-empty { color: #6b6b6b; padding: 2rem 0; text-align: center; }
+.lk-link { margin: 1rem 0 0; }
+.lk-official { color: #555; font-style: italic; margin: 0.25rem 0 0; }
+
+/* ----- Slide-in detail drawer ----- */
+.lk-backdrop {
+  position: fixed; inset: 0; z-index: 1040;
+  background: rgba(20, 24, 33, .38);
+  animation: lk-fade .18s ease;
+}
+@keyframes lk-fade { from { opacity: 0; } to { opacity: 1; } }
+body.lk-noscroll { overflow: hidden; }
+
+.lk-drawer {
+  position: fixed; top: 0; right: 0; bottom: 0; z-index: 1050;
+  width: min(760px, 100vw);
+  transform: translateX(100%);
+  transition: transform .28s cubic-bezier(.4, 0, .2, 1);
+  visibility: hidden;
+}
+.lk-drawer.is-open { transform: translateX(0); visibility: visible; }
+.lk-drawer-panel {
+  height: 100%;
+  overflow-y: auto;
+  background: #fff;
+  box-shadow: -8px 0 32px rgba(0, 0, 0, .18);
+  outline: none;
+}
+.lk-drawer-close {
+  position: sticky; top: 0.6rem; float: right;
+  margin: 0.6rem 0.6rem 0 0;
+  z-index: 2;
+  width: 34px; height: 34px;
+  border: none; border-radius: 50%;
+  background: #f0f0f0; color: #333;
+  font-size: 1.5rem; line-height: 1;
+  cursor: pointer;
+}
+.lk-drawer-close:hover { background: #e2e2e2; }
+.lk-drawer-loading { padding: 4rem 1.5rem; text-align: center; color: #6b6b6b; }
+
+.lk-drawer-header {
+  padding: 1.25rem 1.5rem 1rem;
+  border-bottom: 1px solid #ededed;
+}
+.lk-drawer-nct { font-family: var(--bs-font-monospace, monospace); font-size: 0.85rem; }
+.lk-drawer-nct a { color: #2b6cb0; text-decoration: none; }
+.lk-drawer-header h2 { margin: 0.35rem 0 0; font-size: 1.3rem; line-height: 1.3; }
+.lk-drawer-body { padding: 0 1.5rem 3rem; font-size: 0.9rem; }
+
+.lk-sec { margin-top: 1.4rem; }
+.lk-sec > summary, .lk-sec h3 {
+  font-size: 0.78rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase;
+  color: #2b6cb0; margin: 0 0 0.6rem;
+}
+.lk-sec > summary { cursor: pointer; list-style: none; padding: 0.4rem 0; border-bottom: 1px solid #ededed; }
+.lk-sec > summary::-webkit-details-marker { display: none; }
+.lk-sec > summary h3 { display: inline; margin: 0; }
+.lk-sec > summary::before { content: "▸ "; color: #9aa7b8; }
+.lk-sec[open] > summary::before { content: "▾ "; }
+.lk-sec--static > h3 { padding-bottom: 0.4rem; border-bottom: 1px solid #ededed; }
+.lk-sec-body { padding-top: 0.6rem; }
+
+.lk-grid { display: grid; grid-template-columns: 150px 1fr; gap: 0.25rem 0.9rem; }
+.lk-row { display: contents; }
+.lk-k { color: #6b6b6b; font-weight: 600; }
+.lk-v { min-width: 0; word-wrap: break-word; }
+.lk-subhead { font-weight: 700; color: #333; margin: 1rem 0 0.5rem; }
+.lk-prose { margin: 0.35rem 0; line-height: 1.55; white-space: normal; }
+.lk-muted { color: #8a8a8a; font-size: 0.82rem; margin: 0.35rem 0; }
+
+.lk-item {
+  border-left: 3px solid #e2e8f0;
+  padding: 0.4rem 0 0.4rem 0.8rem;
+  margin-bottom: 0.7rem;
+}
+.lk-item-head { font-weight: 600; }
+.lk-item-sub { color: #6b6b6b; font-size: 0.83rem; margin-top: 0.25rem; }
+
+.lk-criteria {
+  white-space: pre-wrap;
+  font-family: var(--bs-font-monospace, monospace);
+  font-size: 0.82rem;
+  background: #f7f8fa;
+  border: 1px solid #eceef1;
+  border-radius: 8px;
+  padding: 0.8rem 1rem;
+  line-height: 1.5;
+  overflow-x: auto;
+}
+.lk-more { margin: 0.5rem 0; }
+.lk-more > summary { cursor: pointer; color: #2b6cb0; font-weight: 600; padding: 0.3rem 0; }
+
+.lk-tablewrap { overflow-x: auto; margin: 0.5rem 0; }
+.lk-table { width: 100%; border-collapse: collapse; font-size: 0.83rem; }
+.lk-table th, .lk-table td {
+  padding: 0.4rem 0.6rem; text-align: left; vertical-align: top;
+  border-bottom: 1px solid #eceef1;
+}
+.lk-table th { background: #f5f7f9; font-weight: 600; white-space: nowrap; }
+
+.lk-results-banner {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 1rem;
+  justify-content: space-between;
+  margin: 1.8rem 0 0.4rem;
+  padding: 0.6rem 0.9rem;
+  background: #fef8e9; border: 1px solid #f3e3b6; border-radius: 8px;
+  font-weight: 700; color: #8a6100;
+}
+.lk-results-banner a { font-weight: 600; font-size: 0.85rem; }
+
+@media (max-width: 620px) {
+  .lk-grid { grid-template-columns: 1fr; gap: 0.05rem; }
+  .lk-k { margin-top: 0.4rem; }
+}

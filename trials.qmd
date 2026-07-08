@@ -6,8 +6,8 @@ pagetitle: "WISSPAR — Clinical Trials Overview"
 Browse the pneumococcal vaccine clinical trials in the WISSPAR database. Each row
 is one trial; the table is built live from the same immunogenicity dataset that
 powers the [Graphical View](graphical-view.qmd). Search by trial number, sponsor,
-or vaccine, and click a column header to sort. For full protocol details, use the
-[trial lookup tool](https://wisspar.com/view).
+or vaccine, and click a column header to sort. Trials registered on
+ClinicalTrials.gov link out to their full protocol record.
 
 ```{=html}
 <div class="trials-controls">

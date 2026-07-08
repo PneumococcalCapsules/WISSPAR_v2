@@ -1,0 +1,26 @@
+---
+title: "O Canada!"
+description: "The WISSPAR team shared the platform at ISPPD-12 in Toronto."
+author: "The WISSPAR Team"
+date: "2022-06-22"
+categories: [updates]
+image: images/logo-new.png
+---
+
+The WISSPAR team attended the **12th International Symposium on Pneumococci and
+Pneumococcal Disease (ISPPD-12)** in Toronto. We were thrilled to share our
+platform with a fantastic group of pneumococcal researchers and pneumococcal
+vaccine enthusiasts this week, whether in a flash talk or in a group meeting.
+
+Our goal was to demonstrate what WISSPAR can do and to gather your input for
+improvements — because we want to make all of your pneumococcal immunogenicity
+data dreams come true!
+
+## Our e-poster
+
+<div class="ratio ratio-16x9" style="max-width:900px;margin:1rem 0;">
+  <iframe src="ISPPD_WISSPAR_E_POSTER.pdf"
+          title="WISSPAR ISPPD-12 e-poster"></iframe>
+</div>
+
+[Download the e-poster (PDF)](ISPPD_WISSPAR_E_POSTER.pdf)

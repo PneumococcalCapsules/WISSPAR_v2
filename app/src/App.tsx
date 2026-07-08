@@ -2,56 +2,54 @@ import { useEffect, useMemo, useState } from "react";
 import { Row } from "./data";
 import {
   FilterState,
-  allPhases,
+  Metric,
+  ViewMode,
   allSerotypes,
   allVaccines,
-  anyMerckSelected,
-  defaultDose,
-  doseOptions,
-  fineAgeContainsChild,
-  fineAgeOptions,
-  gmcEclData,
-  gmcElisaData,
-  gmcRatioBase,
-  opaData,
+  allPhases,
+  vaccinesForSerotype,
+  comparatorOptions,
   scheduleOptions,
   sponsorOptions,
   studyIdOptions,
+  filteredRows,
 } from "./filters";
-import { computeRatios } from "./ratio";
+import { buildArms, individualRows, pooledRows } from "./arms";
+import { comparatorColor, REF_COLOR, shortVaccine } from "./plot/chart";
 import { Sidebar } from "./components/Sidebar";
 import { Tabs, TabDef } from "./components/Tabs";
-import { GmcPlot } from "./components/GmcPlot";
-import { OpaPlot } from "./components/OpaPlot";
-import { RatioPlot } from "./components/RatioPlot";
+import { Segmented } from "./components/Segmented";
+import { DumbbellPlot } from "./components/DumbbellPlot";
+import { RatioForest } from "./components/RatioForest";
 
-const DEFAULT_VAX = ["PCV13 (Pfizer)", "PCV15"];
-const DEFAULT_STS = ["4", "6A", "14", "19F"];
+const PREF_REF = "PCV13 (Pfizer)";
+const PREF_COMPS = ["PCV15", "PCV20", "PCV7"];
+
+function pickRef(options: string[]): string {
+  return options.includes(PREF_REF) ? PREF_REF : options[0] ?? "";
+}
+function pickComps(options: string[]): string[] {
+  const pref = PREF_COMPS.filter((c) => options.includes(c));
+  return (pref.length ? pref : options).slice(0, 3);
+}
 
 function initState(rows: Row[]): FilterState {
-  const age = "Child" as const;
-  const fineAge = fineAgeOptions(rows, age);
-  const hasChild = fineAgeContainsChild(fineAge);
-  const schedule = scheduleOptions(rows, hasChild);
-  const dose = defaultDose(hasChild, doseOptions(rows, hasChild));
-  const phase = allPhases(rows);
-  const availVax = allVaccines(rows);
-  const availSts = allSerotypes(rows);
-  const vax = DEFAULT_VAX.filter((v) => availVax.includes(v));
+  const serotypes = allSerotypes(rows);
+  const serotype = serotypes.includes("4") ? "4" : serotypes[0] ?? "";
   const base: FilterState = {
-    vax,
-    serotypes: DEFAULT_STS.filter((s) => availSts.includes(s)),
-    age,
-    fineAge,
-    schedule,
-    dose,
-    pairedOnly: true,
-    phase,
-    refVax: vax[0] ?? "",
-    compVax: vax[1] ?? vax[0] ?? "",
+    serotype,
+    refVax: "",
+    comparators: [],
+    population: "Child",
+    metric: "gmc",
+    view: "pooled",
+    schedules: [],
+    phases: allPhases(rows),
     sponsors: [],
     studyIds: [],
   };
+  base.refVax = pickRef(vaccinesForSerotype(rows, serotype, base.metric));
+  base.comparators = pickComps(comparatorOptions(rows, base));
   base.sponsors = sponsorOptions(rows, base);
   base.studyIds = studyIdOptions(rows, base);
   return base;
@@ -61,141 +59,184 @@ export function App({ rows }: { rows: Row[] }) {
   const [state, setState] = useState<FilterState>(() => initState(rows));
   const set = (patch: Partial<FilterState>) => setState((s) => ({ ...s, ...patch }));
 
-  // ---- option lists ----
-  const optVax = useMemo(() => allVaccines(rows), [rows]);
-  const optSts = useMemo(() => allSerotypes(rows), [rows]);
+  const allVax = useMemo(() => allVaccines(rows), [rows]);
+  const optSero = useMemo(() => allSerotypes(rows), [rows]);
   const optPhase = useMemo(() => allPhases(rows), [rows]);
-  const optFineAge = useMemo(() => fineAgeOptions(rows, state.age), [rows, state.age]);
-  const hasChild = fineAgeContainsChild(state.fineAge);
-  const optSchedule = useMemo(() => scheduleOptions(rows, hasChild), [rows, hasChild]);
-  const optDose = useMemo(() => doseOptions(rows, hasChild), [rows, hasChild]);
-  const optSponsors = useMemo(
+  const optRef = useMemo(
+    () => vaccinesForSerotype(rows, state.serotype, state.metric),
+    [rows, state.serotype, state.metric],
+  );
+  const optComp = useMemo(
+    () => comparatorOptions(rows, state),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [rows, state.serotype, state.metric, state.refVax],
+  );
+  const optSched = useMemo(
+    () => scheduleOptions(rows, state),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [rows, state.serotype, state.metric, state.refVax, state.comparators, state.population],
+  );
+  const optSponsor = useMemo(
     () => sponsorOptions(rows, state),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [rows, state.vax, state.dose, state.fineAge, state.phase],
+    [rows, state.serotype, state.metric, state.refVax, state.comparators, state.population],
   );
-  const optStudies = useMemo(
+  const optStudy = useMemo(
     () => studyIdOptions(rows, state),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [rows, state.vax, state.dose, state.fineAge, state.phase],
+    [rows, state.serotype, state.metric, state.refVax, state.comparators, state.population],
   );
 
-  // ---- cascade resets (mirror the renderUI dependencies in app.R) ----
-  const fineAgeKey = optFineAge.join("|");
-  useEffect(() => set({ fineAge: optFineAge }), [state.age, fineAgeKey]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  const selectedFineAgeKey = state.fineAge.join("|");
-  useEffect(() => set({ schedule: optSchedule }), [selectedFineAgeKey]); // eslint-disable-line react-hooks/exhaustive-deps
-  useEffect(() => set({ dose: defaultDose(hasChild, optDose) }), [selectedFineAgeKey]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  const sponsorsKey = optSponsors.join("|");
-  useEffect(() => set({ sponsors: optSponsors }), [sponsorsKey]); // eslint-disable-line react-hooks/exhaustive-deps
-  const studiesKey = optStudies.join("|");
-  useEffect(() => set({ studyIds: optStudies }), [studiesKey]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  const vaxKey = state.vax.join("|");
+  // ---- cascade resets ----
+  // reference must be valid for the current serotype + metric
   useEffect(() => {
-    set({ refVax: state.vax[0] ?? "", compVax: state.vax[1] ?? state.vax[0] ?? "" });
-  }, [vaxKey]); // eslint-disable-line react-hooks/exhaustive-deps
+    if (!optRef.includes(state.refVax)) set({ refVax: pickRef(optRef) });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [optRef.join("|")]);
 
-  // ---- plot datasets ----
-  const elisa = useMemo(() => gmcElisaData(rows, state), [rows, state]);
-  const ecl = useMemo(() => gmcEclData(rows, state), [rows, state]);
-  const opa = useMemo(() => opaData(rows, state), [rows, state]);
-  const gmcRatios = useMemo(
-    () => computeRatios(gmcRatioBase(rows, state), state.refVax, state.compVax, true),
-    [rows, state],
+  // comparators trimmed to what co-occurs; default if empty
+  const compKey = optComp.join("|");
+  useEffect(() => {
+    const kept = state.comparators.filter((c) => optComp.includes(c));
+    const next = kept.length ? kept : pickComps(optComp);
+    if (next.join("|") !== state.comparators.join("|")) set({ comparators: next });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [compKey]);
+
+  // sponsor / trial selections reset to "all available" when scope changes
+  useEffect(() => set({ sponsors: optSponsor }), [optSponsor.join("|")]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => set({ studyIds: optStudy }), [optStudy.join("|")]); // eslint-disable-line react-hooks/exhaustive-deps
+  // schedules default to "all" (empty selection) on scope change
+  useEffect(() => set({ schedules: [] }), [optSched.join("|")]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ---- charts ----
+  const sub = useMemo(() => filteredRows(rows, state), [rows, state]);
+  const arms = useMemo(
+    () => buildArms(sub, state.serotype, state.metric === "gmc" ? "GMC" : "OPA"),
+    [sub, state.serotype, state.metric],
   );
-  const opaRatios = useMemo(
-    () => computeRatios(opaData(rows, state), state.refVax, state.compVax, false),
-    [rows, state],
+  const chartRows = useMemo(
+    () =>
+      state.view === "pooled"
+        ? pooledRows(arms, state.refVax, state.comparators)
+        : individualRows(arms, state.refVax, state.comparators),
+    [arms, state.refVax, state.comparators, state.view],
   );
 
-  // ---- tab layout (matches output$tabbed_output) ----
-  const isChild = state.age === "Child";
-  const showEcl = isChild && anyMerckSelected(state);
+  const valueTitle = state.metric === "gmc" ? "GMC (µg/mL, log scale)" : "OPA GMT (log scale)";
+  const threshold = state.metric === "gmc" ? 0.35 : undefined;
+  const nComparators = state.comparators.length;
 
-  const gmcTab: TabDef = {
-    id: "gmc",
-    label: "Concentration (GMC)",
-    render: () =>
-      showEcl ? (
-        <Tabs
-          idPrefix="gmc-assay"
-          tabs={[
-            {
-              id: "ecl",
-              label: "ECL",
-              render: () => (
-                <GmcPlot data={ecl} rowByDose={false} emptyMessage="ECL not performed or available for the selected vaccines." />
-              ),
-            },
-            {
-              id: "elisa",
-              label: "ELISA",
-              render: () => (
-                <GmcPlot data={elisa} rowByDose={true} emptyMessage="ELISA not performed or available for the selected vaccines." />
-              ),
-            },
-          ]}
+  const legend = (
+    <div className="wf-legend">
+      <span className="wf-legend-item">
+        <span className="wf-legend-sw ring" style={{ boxShadow: `0 0 0 2px ${REF_COLOR} inset` }} />
+        <span className="wf-legend-name">{state.refVax}</span>
+        <span className="wf-legend-role">reference</span>
+      </span>
+      {state.comparators.map((c) => (
+        <span className="wf-legend-item" key={c}>
+          <span className="wf-legend-sw" style={{ background: comparatorColor(c, state.refVax, allVax) }} />
+          <span className="wf-legend-name">{c}</span>
+        </span>
+      ))}
+    </div>
+  );
+
+  const levelsTab: TabDef = {
+    id: "levels",
+    label: "Immunogenicity",
+    render: () => (
+      <div>
+        {legend}
+        <DumbbellPlot
+          rows={chartRows}
+          refVax={state.refVax}
+          allVax={allVax}
+          valueTitle={valueTitle}
+          threshold={threshold}
+          emptyMessage="No arms match this reference + comparator selection."
         />
-      ) : (
-        <GmcPlot data={elisa} rowByDose={true} emptyMessage="ELISA not performed or available for the selected vaccines." />
-      ),
-  };
-
-  const opaTab: TabDef = { id: "opa", label: "Activity (OPA)", render: () => <OpaPlot data={opa} /> };
-  const gmcRatioTab: TabDef = {
-    id: "gmc-ratio",
-    label: "GMC Ratio",
-    render: () => (
-      <RatioPlot points={gmcRatios} refVax={state.refVax} compVax={state.compVax} xTitle="Ratio of Immunogenicity" />
-    ),
-  };
-  const opaRatioTab: TabDef = {
-    id: "opa-ratio",
-    label: "OPA Ratio",
-    render: () => (
-      <RatioPlot points={opaRatios} refVax={state.refVax} compVax={state.compVax} xTitle="Ratio of OPA GMT" />
+      </div>
     ),
   };
 
-  const tabs: TabDef[] = isChild
-    ? [gmcTab, opaTab, gmcRatioTab, opaRatioTab]
-    : [opaTab, opaRatioTab];
+  const h2hTab: TabDef = {
+    id: "h2h",
+    label: "Head-to-head (ratio)",
+    render: () => (
+      <div>
+        <div className="wf-legend-note">
+          Each comparator vs <b>{state.refVax}</b>; dashed line = no difference. Left of the line,
+          the reference is higher.
+        </div>
+        <RatioForest
+          rows={chartRows}
+          refVax={state.refVax}
+          allVax={allVax}
+          comparators={state.comparators}
+          emptyMessage="No arms match this reference + comparator selection."
+          pooledSummary={state.view === "individual"}
+        />
+      </div>
+    ),
+  };
+
+  const tabs: TabDef[] = [levelsTab, h2hTab];
 
   return (
     <div className="wf-root">
       <Sidebar
         state={state}
         set={set}
+        allVax={allVax}
         options={{
-          vax: optVax,
-          serotypes: optSts,
-          fineAge: optFineAge,
-          schedule: optSchedule,
-          dose: optDose,
-          phase: optPhase,
-          sponsors: optSponsors,
-          studyIds: optStudies,
+          serotypes: optSero,
+          refOptions: optRef,
+          comparators: optComp,
+          schedules: optSched,
+          phases: optPhase,
+          sponsors: optSponsor,
+          studyIds: optStudy,
         }}
       />
       <main className="wf-main">
+        <div className="wf-toolbar">
+          <div className="wf-toolbar-title">
+            Serotype <b>{state.serotype}</b> · reference{" "}
+            <b>{shortVaccine(state.refVax)}</b> vs {nComparators} comparator
+            {nComparators === 1 ? "" : "s"}
+          </div>
+          <div className="wf-toolbar-controls">
+            <Segmented<Metric>
+              label="Assay:"
+              options={[
+                { value: "gmc", label: "GMC" },
+                { value: "opa", label: "OPA" },
+              ]}
+              value={state.metric}
+              onChange={(metric) => set({ metric })}
+            />
+            <Segmented<ViewMode>
+              label="View:"
+              options={[
+                { value: "pooled", label: "Pooled" },
+                { value: "individual", label: "Individual arms" },
+              ]}
+              value={state.view}
+              onChange={(view) => set({ view })}
+            />
+          </div>
+        </div>
+
         <Tabs idPrefix="main" tabs={tabs} />
 
         <div className="wf-infobox wf-warn">
-          <strong>Important information.</strong> This database is still under development —
-          please use with caution. Data on immunogenicity alone cannot be used to infer
-          differences in effectiveness between vaccines. These data need to be combined with
-          information on the protective concentration of antibodies required to protect against
-          each serotype in different populations for meaningful comparisons. Caution should be
-          used when comparing data from trials conducted by different sponsors, which might use
-          different assays.
-        </div>
-        <div className="wf-infobox wf-note">
-          <strong>Change log.</strong> Sept 30, 2022: Separately plot GMC calculated with ELISA
-          from those measured with ECL, and separate out OPA results by sponsor, as suggested by
-          a trial sponsor.
+          <strong>Important information.</strong> This database is still under development — please
+          use with caution. Data on immunogenicity alone cannot be used to infer differences in
+          effectiveness between vaccines. Caution should be used when comparing data from trials
+          conducted by different sponsors, which might use different assays. GMC values pool ELISA
+          and ECL reads; use the sponsor filter to isolate assay-comparable trials.
         </div>
       </main>
     </div>

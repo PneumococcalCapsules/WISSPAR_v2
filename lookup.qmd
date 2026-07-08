@@ -1,0 +1,519 @@
+---
+title: "Look up a trial"
+pagetitle: "WISSPAR — Look up a trial"
+---
+
+Search the pneumococcal vaccine trials in the WISSPAR database by trial number
+(NCT), title, sponsor, condition, vaccine, or country. Click any trial to open
+its full record — design, eligibility, outcomes, locations, references, and
+reported results where available. Details are pulled from a static snapshot of
+[ClinicalTrials.gov](https://clinicaltrials.gov){target="_blank"} metadata.
+
+```{=html}
+<div class="trials-controls">
+  <input id="lk-search" type="search" placeholder="Search NCT, title, sponsor, vaccine, country…" style="flex:1;min-width:280px;" />
+  <select id="lk-phase"><option value="">All phases</option></select>
+  <select id="lk-status"><option value="">All statuses</option></select>
+  <select id="lk-sponsor"><option value="">All sponsors</option></select>
+</div>
+<div class="trials-count" id="lk-count"></div>
+<div id="lk-results"></div>
+
+<div id="lk-drawer" class="lk-drawer" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="lk-drawer-title">
+  <div class="lk-drawer-panel" tabindex="-1">
+    <button class="lk-drawer-close" id="lk-drawer-close" aria-label="Close record">&times;</button>
+    <div class="lk-drawer-content" id="lk-drawer-content"></div>
+  </div>
+</div>
+<div id="lk-backdrop" class="lk-backdrop" hidden></div>
+
+<script type="module">
+const INDEX_URL = "data/trials_meta.json";
+const DETAIL_URL = (nct) => `data/trials/${nct}.json`;
+
+/* ---------- small helpers ---------- */
+const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) =>
+  ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const natSort = (a, b) =>
+  String(a).localeCompare(String(b), undefined, { numeric: true, sensitivity: "base" });
+const phaseLabel = (p) => p ? p.replace(/PHASE/g, "Phase ").replace(/NA/g, "N/A").replace(/\s+/g, " ").trim() : "—";
+const titleCase = (s) => s ? s.split(/[\s_]+/).map((w) => w.charAt(0) + w.slice(1).toLowerCase()).join(" ") : "";
+const nl2br = (s) => esc(s).replace(/\n/g, "<br>");
+const fmtInt = (n) => (n == null || n === "") ? "—" : Number(n).toLocaleString();
+const fmtDate = (d) => d || "—";
+const has = (v) => v != null && v !== "" && !(Array.isArray(v) && v.length === 0);
+
+/* Build a definition-grid of key/value rows, skipping empties. */
+function grid(pairs) {
+  const rows = pairs.filter(([, v]) => has(v))
+    .map(([k, v]) => `<div class="lk-row"><span class="lk-k">${esc(k)}</span><span class="lk-v">${v}</span></div>`)
+    .join("");
+  return rows ? `<div class="lk-grid">${rows}</div>` : "";
+}
+/* A collapsible or plain section with a heading and body html. */
+function section(id, title, bodyHtml, { open = true, collapsible = false } = {}) {
+  if (!bodyHtml || !bodyHtml.trim()) return "";
+  if (collapsible) {
+    return `<details class="lk-sec" id="${id}"${open ? " open" : ""}>
+      <summary><h3>${esc(title)}</h3></summary>
+      <div class="lk-sec-body">${bodyHtml}</div></details>`;
+  }
+  return `<section class="lk-sec lk-sec--static" id="${id}">
+    <h3>${esc(title)}</h3><div class="lk-sec-body">${bodyHtml}</div></section>`;
+}
+function tagRow(items, cls = "") {
+  const t = (items || []).filter(Boolean)
+    .map((x) => `<span class="lk-tag ${cls}">${esc(x)}</span>`).join("");
+  return t ? `<div class="lk-tags lk-tags--wrap">${t}</div>` : "";
+}
+function table(headers, rows) {
+  if (!rows || !rows.length) return "";
+  const thead = `<tr>${headers.map((h) => `<th>${esc(h)}</th>`).join("")}</tr>`;
+  const tbody = rows.map((r) => `<tr>${r.map((c) => `<td>${c}</td>`).join("")}</tr>`).join("");
+  return `<div class="lk-tablewrap"><table class="lk-table"><thead>${thead}</thead><tbody>${tbody}</tbody></table></div>`;
+}
+
+/* ---------- detail-record section renderers ---------- */
+function renderIdentification(p) {
+  const id = p.identificationModule || {};
+  const org = (id.orgStudyIdInfo || {}).id;
+  const secondary = (id.secondaryIdInfos || []).map((s) => s.id);
+  return grid([
+    ["Acronym", id.acronym && esc(id.acronym)],
+    ["Org study ID", org && esc(org)],
+    ["Secondary IDs", secondary.length ? secondary.map(esc).join(", ") : null],
+  ]);
+}
+
+function renderStatus(p) {
+  const st = p.statusModule || {};
+  const sp = p.sponsorCollaboratorsModule || {};
+  const ov = p.oversightModule || {};
+  const rp = sp.responsibleParty || {};
+  const flags = [
+    ov.isFdaRegulatedDrug ? "FDA-regulated drug" : null,
+    ov.isFdaRegulatedDevice ? "FDA-regulated device" : null,
+    ov.oversightHasDmc ? "Has data monitoring committee" : null,
+  ].filter(Boolean);
+  return grid([
+    ["Lead sponsor", esc((sp.leadSponsor || {}).name)],
+    ["Collaborators", (sp.collaborators || []).length
+      ? (sp.collaborators || []).map((c) => esc(c.name)).join(", ") : null],
+    ["Responsible party", rp.type
+      ? esc([titleCase(rp.type), rp.investigatorFullName, rp.investigatorTitle].filter(Boolean).join(" — ")) : null],
+    ["Study start", fmtDate((st.startDateStruct || {}).date)],
+    ["Primary completion", fmtDate((st.primaryCompletionDateStruct || {}).date)],
+    ["Study completion", fmtDate((st.completionDateStruct || {}).date)],
+    ["First posted", fmtDate((st.studyFirstPostDateStruct || {}).date)],
+    ["Last updated", fmtDate((st.lastUpdatePostDateStruct || {}).date)],
+    ["Results posted", fmtDate((st.resultsFirstPostDateStruct || {}).date)],
+    ["Why stopped", st.whyStopped && esc(st.whyStopped)],
+    ["Oversight", flags.length ? esc(flags.join(" · ")) : null],
+  ]);
+}
+
+function renderDescription(p) {
+  const ds = p.descriptionModule || {};
+  const co = p.conditionsModule || {};
+  let html = "";
+  if (ds.briefSummary) html += `<p class="lk-prose">${nl2br(ds.briefSummary)}</p>`;
+  if (ds.detailedDescription)
+    html += `<details class="lk-more"><summary>Detailed description</summary>
+      <p class="lk-prose">${nl2br(ds.detailedDescription)}</p></details>`;
+  const conds = co.conditions || [];
+  const keys = co.keywords || [];
+  if (conds.length) html += `<div class="lk-subhead">Conditions</div>${tagRow(conds)}`;
+  if (keys.length) html += `<div class="lk-subhead">Keywords</div>${tagRow(keys, "lk-tag--key")}`;
+  return html;
+}
+
+function renderDesign(p) {
+  const de = p.designModule || {};
+  const di = de.designInfo || {};
+  const mask = (di.maskingInfo || {}).masking;
+  const en = de.enrollmentInfo || {};
+  return grid([
+    ["Study type", esc(titleCase(de.studyType))],
+    ["Phase", (de.phases || []).length ? esc(phaseLabel((de.phases || []).join(", "))) : null],
+    ["Allocation", esc(titleCase(di.allocation))],
+    ["Intervention model", esc(titleCase(di.interventionModel))],
+    ["Primary purpose", esc(titleCase(di.primaryPurpose))],
+    ["Masking", mask ? esc(titleCase(mask)) : null],
+    ["Enrollment", en.count != null ? `${fmtInt(en.count)}${en.type ? " (" + titleCase(en.type) + ")" : ""}` : null],
+  ]);
+}
+
+function renderArms(p) {
+  const ai = p.armsInterventionsModule || {};
+  const arms = ai.armGroups || [];
+  const ivs = ai.interventions || [];
+  let html = "";
+  if (arms.length) {
+    html += `<div class="lk-subhead">Study arms / groups</div>`;
+    html += arms.map((a) => `<div class="lk-item">
+      <div class="lk-item-head">${esc(a.label)}${a.type ? ` <span class="lk-tag">${esc(titleCase(a.type))}</span>` : ""}</div>
+      ${a.description ? `<p class="lk-prose">${nl2br(a.description)}</p>` : ""}
+      ${(a.interventionNames || []).length ? `<div class="lk-item-sub">${(a.interventionNames || []).map(esc).join(" · ")}</div>` : ""}
+    </div>`).join("");
+  }
+  if (ivs.length) {
+    html += `<div class="lk-subhead">Interventions</div>`;
+    html += ivs.map((i) => `<div class="lk-item">
+      <div class="lk-item-head">${i.type ? `<span class="lk-tag">${esc(titleCase(i.type))}</span> ` : ""}${esc(i.name)}</div>
+      ${i.description ? `<p class="lk-prose">${nl2br(i.description)}</p>` : ""}
+      ${(i.otherNames || []).length ? `<div class="lk-item-sub">Also known as: ${(i.otherNames || []).map(esc).join(", ")}</div>` : ""}
+    </div>`).join("");
+  }
+  return html;
+}
+
+function renderOutcomes(p) {
+  const om = p.outcomesModule || {};
+  const block = (list, label) => {
+    if (!(list || []).length) return "";
+    return `<div class="lk-subhead">${label}</div>` + list.map((o) => `<div class="lk-item">
+      <div class="lk-item-head">${esc(o.measure)}</div>
+      ${o.description ? `<p class="lk-prose">${nl2br(o.description)}</p>` : ""}
+      ${o.timeFrame ? `<div class="lk-item-sub"><strong>Time frame:</strong> ${esc(o.timeFrame)}</div>` : ""}
+    </div>`).join("");
+  };
+  return block(om.primaryOutcomes, "Primary outcomes") + block(om.secondaryOutcomes, "Secondary outcomes");
+}
+
+function renderEligibility(p) {
+  const el = p.eligibilityModule || {};
+  let html = grid([
+    ["Sex", esc(titleCase(el.sex))],
+    ["Ages", esc([el.minimumAge, el.maximumAge].filter(Boolean).join(" to ")) || (el.stdAges || []).map(titleCase).join(", ")],
+    ["Age groups", (el.stdAges || []).length ? esc((el.stdAges || []).map(titleCase).join(", ")) : null],
+    ["Healthy volunteers", el.healthyVolunteers === true ? "Accepts healthy volunteers" : (el.healthyVolunteers === false ? "No" : null)],
+  ]);
+  if (el.eligibilityCriteria)
+    html += `<details class="lk-more" open><summary>Eligibility criteria</summary>
+      <pre class="lk-criteria">${esc(el.eligibilityCriteria)}</pre></details>`;
+  return html;
+}
+
+function renderLocations(p) {
+  const cl = p.contactsLocationsModule || {};
+  const locs = cl.locations || [];
+  if (!locs.length) return "";
+  const rows = locs.map((l) => [
+    esc(l.facility || "—"),
+    esc([l.city, l.state].filter(Boolean).join(", ") || "—"),
+    esc(l.country || "—"),
+    l.status ? `<span class="lk-tag lk-tag--status">${esc(titleCase(l.status))}</span>` : "—",
+  ]);
+  return `<div class="lk-muted">${locs.length} location${locs.length === 1 ? "" : "s"}</div>`
+    + table(["Facility", "City / State", "Country", "Status"], rows);
+}
+
+function renderReferences(p) {
+  const rm = p.referencesModule || {};
+  const refs = rm.references || [];
+  if (!refs.length) return "";
+  return refs.map((r) => {
+    const cite = esc(r.citation || "");
+    const link = r.pmid
+      ? ` <a href="https://pubmed.ncbi.nlm.nih.gov/${esc(r.pmid)}/" target="_blank" rel="noopener">PMID ${esc(r.pmid)} ↗</a>`
+      : "";
+    const type = r.type ? `<span class="lk-tag">${esc(titleCase(r.type))}</span> ` : "";
+    return `<div class="lk-item"><div>${type}${cite}${link}</div></div>`;
+  }).join("");
+}
+
+/* ---------- results section (rendered only when present) ---------- */
+function affRow(a, r) { // affected of at-risk
+  if (r == null) return "—";
+  return `${fmtInt(a ?? 0)} / ${fmtInt(r)}`;
+}
+
+function renderParticipantFlow(pf) {
+  let html = "";
+  if (pf.recruitmentDetails) html += `<p class="lk-prose">${nl2br(pf.recruitmentDetails)}</p>`;
+  const groups = pf.groups || [];
+  const periods = pf.periods || [];
+  // Summarise started / completed per group across the first period.
+  if (groups.length && periods.length) {
+    const per = periods[0];
+    const milestoneMap = {};
+    (per.milestones || []).forEach((m) => {
+      milestoneMap[m.type] = {};
+      (m.achievements || []).forEach((a) => { milestoneMap[m.type][a.groupId] = a.numSubjects; });
+    });
+    const started = milestoneMap["STARTED"] || {};
+    const completed = milestoneMap["COMPLETED"] || {};
+    const rows = groups.map((g) => [
+      esc(g.title),
+      fmtInt(started[g.id]),
+      fmtInt(completed[g.id]),
+    ]);
+    html += table(["Group", "Started", "Completed"], rows);
+    if (periods.length > 1 || (per.title && per.title !== "Overall Study"))
+      html += `<div class="lk-muted">Milestones shown for period: ${esc(per.title || "—")}. See full record for all periods.</div>`;
+  }
+  return html;
+}
+
+function renderAdverseEvents(ae) {
+  let html = "";
+  const meta = [];
+  if (ae.frequencyThreshold != null) meta.push(`Frequency threshold: ${esc(ae.frequencyThreshold)}%`);
+  if (meta.length) html += `<div class="lk-muted">${meta.join(" · ")}</div>`;
+  const groups = ae.eventGroups || [];
+  if (groups.length) {
+    const rows = groups.map((g) => [
+      esc(g.title),
+      affRow(g.deathsNumAffected, g.deathsNumAtRisk),
+      affRow(g.seriousNumAffected, g.seriousNumAtRisk),
+      affRow(g.otherNumAffected, g.otherNumAtRisk),
+    ]);
+    html += `<div class="lk-subhead">Summary (subjects affected / at risk)</div>`;
+    html += table(["Group", "Deaths", "Serious AEs", "Other AEs"], rows);
+  }
+  const topEvents = (list, label) => {
+    const evs = (list || []).slice().sort((a, b) => {
+      const sum = (e) => (e.stats || []).reduce((n, s) => n + (s.numAffected || 0), 0);
+      return sum(b) - sum(a);
+    }).slice(0, 10);
+    if (!evs.length) return "";
+    const rows = evs.map((e) => [
+      esc(e.term),
+      esc(e.organSystem || "—"),
+      fmtInt((e.stats || []).reduce((n, s) => n + (s.numAffected || 0), 0)),
+    ]);
+    return `<div class="lk-subhead">${label} <span class="lk-muted">(top ${evs.length} by subjects affected)</span></div>`
+      + table(["Term", "Organ system", "Subjects affected"], rows);
+  };
+  html += topEvents(ae.seriousEvents, "Serious adverse events");
+  html += topEvents(ae.otherEvents, "Other adverse events");
+  return html;
+}
+
+function renderOutcomeMeasures(om) {
+  const measures = om.outcomeMeasures || [];
+  if (!measures.length) return "";
+  return measures.map((m) => {
+    const meta = grid([
+      ["Type", esc(titleCase(m.type))],
+      ["Reporting", esc(titleCase(m.reportingStatus))],
+      ["Parameter", esc([titleCase(m.paramType), m.unitOfMeasure].filter(Boolean).join(", "))],
+      ["Dispersion", m.dispersionType && esc(m.dispersionType)],
+      ["Time frame", m.timeFrame && esc(m.timeFrame)],
+      ["Population", m.populationDescription && esc(m.populationDescription)],
+    ]);
+    // Render the first class's category values per group as a compact table.
+    let dataTable = "";
+    const cls = (m.classes || [])[0];
+    const groups = m.groups || [];
+    if (cls && groups.length) {
+      const cats = cls.categories || [];
+      const rows = [];
+      cats.forEach((cat) => {
+        const byGroup = {};
+        (cat.measurements || []).forEach((meas) => { byGroup[meas.groupId] = meas; });
+        const cells = groups.map((g) => {
+          const meas = byGroup[g.id];
+          if (!meas) return "—";
+          let v = esc(meas.value ?? "—");
+          if (meas.lowerLimit != null && meas.upperLimit != null)
+            v += ` <span class="lk-muted">(${esc(meas.lowerLimit)}–${esc(meas.upperLimit)})</span>`;
+          else if (meas.spread != null) v += ` <span class="lk-muted">±${esc(meas.spread)}</span>`;
+          return v;
+        });
+        rows.push([esc(cat.title || (m.title)), ...cells]);
+      });
+      if (rows.length)
+        dataTable = table(["", ...groups.map((g) => g.title)], rows);
+    }
+    return `<details class="lk-more"><summary>${esc(m.title)} <span class="lk-tag">${esc(titleCase(m.type))}</span></summary>
+      ${m.description ? `<p class="lk-prose">${nl2br(m.description)}</p>` : ""}
+      ${meta}${dataTable}</details>`;
+  }).join("");
+}
+
+/* ---------- assemble the full record ---------- */
+function renderRecord(detail, indexRow) {
+  const p = detail.protocolSection || {};
+  const rs = detail.resultsSection;
+  const id = p.identificationModule || {};
+  const st = p.statusModule || {};
+  const de = p.designModule || {};
+  const nct = id.nctId || detail.nctId;
+  const title = id.briefTitle || id.officialTitle || nct;
+
+  const badges = [
+    (de.phases || []).length ? `<span class="lk-tag">${esc(phaseLabel((de.phases || []).join(", ")))}</span>` : "",
+    st.overallStatus ? `<span class="lk-tag lk-tag--status">${esc(titleCase(st.overallStatus))}</span>` : "",
+    detail.hasResults ? `<span class="lk-tag lk-tag--results">Has results</span>` : "",
+  ].filter(Boolean).join("");
+
+  const header = `<div class="lk-drawer-header">
+    <div class="lk-drawer-nct"><a href="https://clinicaltrials.gov/study/${esc(nct)}" target="_blank" rel="noopener">${esc(nct)} ↗</a></div>
+    <h2 id="lk-drawer-title">${esc(title)}</h2>
+    ${id.officialTitle && id.officialTitle !== title ? `<p class="lk-official">${esc(id.officialTitle)}</p>` : ""}
+    <div class="lk-tags lk-tags--wrap">${badges}</div>
+  </div>`;
+
+  const sections = [
+    section("sec-overview", "Overview", renderStatus(p) + renderIdentification(p)),
+    section("sec-about", "About the study", renderDescription(p)),
+    section("sec-design", "Study design", renderDesign(p)),
+    section("sec-arms", "Arms & interventions", renderArms(p), { collapsible: true }),
+    section("sec-outcomes", "Outcome measures", renderOutcomes(p), { collapsible: true }),
+    section("sec-eligibility", "Eligibility", renderEligibility(p), { collapsible: true }),
+    section("sec-locations", "Locations", renderLocations(p), { collapsible: true, open: false }),
+    section("sec-references", "Publications & references", renderReferences(p), { collapsible: true, open: false }),
+  ];
+
+  if (rs) {
+    const resHtml = [
+      rs.participantFlowModule ? section("sec-flow", "Participant flow", renderParticipantFlow(rs.participantFlowModule), { collapsible: true, open: false }) : "",
+      rs.outcomeMeasuresModule ? section("sec-om", "Outcome measure results", renderOutcomeMeasures(rs.outcomeMeasuresModule), { collapsible: true, open: false }) : "",
+      rs.adverseEventsModule ? section("sec-ae", "Adverse events", renderAdverseEvents(rs.adverseEventsModule), { collapsible: true, open: false }) : "",
+    ].join("");
+    if (resHtml.trim()) {
+      sections.push(`<div class="lk-results-banner">Reported results
+        <a href="https://clinicaltrials.gov/study/${esc(nct)}?tab=results" target="_blank" rel="noopener">Full results on ClinicalTrials.gov ↗</a></div>`);
+      sections.push(resHtml);
+    }
+  }
+
+  sections.push(`<p class="lk-link"><a href="https://clinicaltrials.gov/study/${esc(nct)}" target="_blank" rel="noopener">View the complete record on ClinicalTrials.gov ↗</a></p>`);
+
+  return header + `<div class="lk-drawer-body">${sections.filter(Boolean).join("")}</div>`;
+}
+
+/* ---------- drawer open / close ---------- */
+const drawer = document.getElementById("lk-drawer");
+const backdrop = document.getElementById("lk-backdrop");
+const drawerContent = document.getElementById("lk-drawer-content");
+const drawerPanel = drawer.querySelector(".lk-drawer-panel");
+let lastFocus = null;
+const detailCache = new Map();
+
+async function openTrial(nct, indexRow) {
+  lastFocus = document.activeElement;
+  drawer.classList.add("is-open");
+  drawer.setAttribute("aria-hidden", "false");
+  backdrop.hidden = false;
+  document.body.classList.add("lk-noscroll");
+  drawerContent.innerHTML = `<div class="lk-drawer-loading">Loading ${esc(nct)}…</div>`;
+  drawerPanel.scrollTop = 0;
+  if (location.hash !== `#${nct}`) history.pushState({ nct }, "", `#${nct}`);
+  drawerPanel.focus();
+
+  try {
+    let detail = detailCache.get(nct);
+    if (!detail) {
+      detail = await (await fetch(DETAIL_URL(nct))).json();
+      detailCache.set(nct, detail);
+    }
+    drawerContent.innerHTML = renderRecord(detail, indexRow);
+  } catch (e) {
+    drawerContent.innerHTML = `<div class="lk-drawer-loading">Could not load this record.
+      <a href="https://clinicaltrials.gov/study/${esc(nct)}" target="_blank" rel="noopener">Open it on ClinicalTrials.gov ↗</a></div>`;
+  }
+}
+
+function closeDrawer(fromPop) {
+  if (!drawer.classList.contains("is-open")) return;
+  drawer.classList.remove("is-open");
+  drawer.setAttribute("aria-hidden", "true");
+  backdrop.hidden = true;
+  document.body.classList.remove("lk-noscroll");
+  if (!fromPop && location.hash) history.pushState("", "", location.pathname + location.search);
+  if (lastFocus && lastFocus.focus) lastFocus.focus();
+}
+
+document.getElementById("lk-drawer-close").addEventListener("click", () => closeDrawer());
+backdrop.addEventListener("click", () => closeDrawer());
+document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeDrawer(); });
+
+/* ---------- list + search ---------- */
+(async function () {
+  const results = document.getElementById("lk-results");
+  const countEl = document.getElementById("lk-count");
+  let trials;
+  try {
+    trials = await (await fetch(INDEX_URL)).json();
+  } catch (e) {
+    countEl.textContent = "Could not load trial metadata.";
+    return;
+  }
+  const byId = new Map(trials.map((t) => [t.nctId, t]));
+
+  const search = document.getElementById("lk-search");
+  const phaseSel = document.getElementById("lk-phase");
+  const statusSel = document.getElementById("lk-status");
+  const sponsorSel = document.getElementById("lk-sponsor");
+
+  const phases = [...new Set(trials.flatMap((t) => (t.phase || "").split(", ").filter(Boolean)))].sort(natSort);
+  phases.forEach((p) => phaseSel.add(new Option(phaseLabel(p), p)));
+  [...new Set(trials.map((t) => t.status).filter(Boolean))].sort()
+    .forEach((s) => statusSel.add(new Option(titleCase(s), s)));
+  [...new Set(trials.map((t) => t.sponsor).filter(Boolean))].sort(natSort)
+    .forEach((s) => sponsorSel.add(new Option(s, s)));
+
+  const hay = (t) => [
+    t.nctId, t.title, t.officialTitle, t.sponsor,
+    (t.conditions || []).join(" "), (t.interventions || []).join(" "),
+    (t.countries || []).join(" "), (t.collaborators || []).join(" "),
+  ].join(" ").toLowerCase();
+
+  function card(t) {
+    const meta = [
+      t.phase ? `<span class="lk-tag">${esc(phaseLabel(t.phase))}</span>` : "",
+      t.status ? `<span class="lk-tag lk-tag--status">${esc(titleCase(t.status))}</span>` : "",
+      t.enrollment != null ? `<span class="lk-tag">n=${esc(t.enrollment)}</span>` : "",
+      t.hasResults ? `<span class="lk-tag lk-tag--results">Results</span>` : "",
+    ].filter(Boolean).join("");
+    const sub = [
+      esc(t.sponsor),
+      (t.conditions || []).slice(0, 3).map(esc).join(", "),
+      (t.countries || []).slice(0, 4).map(esc).join(", "),
+    ].filter(Boolean).join(" · ");
+    return `<button class="lk-card" data-nct="${esc(t.nctId)}">
+      <span class="lk-card-top">
+        <span class="lk-nct">${esc(t.nctId)}</span>
+        <span class="lk-title">${esc(t.title)}</span>
+        <span class="lk-tags">${meta}</span>
+      </span>
+      ${sub ? `<span class="lk-card-sub">${sub}</span>` : ""}
+    </button>`;
+  }
+
+  function render() {
+    const q = search.value.trim().toLowerCase();
+    const ph = phaseSel.value, stt = statusSel.value, sp = sponsorSel.value;
+    let view = trials.filter((t) => {
+      if (ph && !(t.phase || "").split(", ").includes(ph)) return false;
+      if (stt && t.status !== stt) return false;
+      if (sp && t.sponsor !== sp) return false;
+      if (q && !hay(t).includes(q)) return false;
+      return true;
+    });
+    view.sort((a, b) => natSort(a.nctId, b.nctId));
+    results.innerHTML = view.map(card).join("") || `<p class="lk-empty">No trials match your search.</p>`;
+    countEl.textContent = `${view.length} of ${trials.length} trials`;
+  }
+
+  results.addEventListener("click", (e) => {
+    const btn = e.target.closest(".lk-card");
+    if (btn) openTrial(btn.dataset.nct, byId.get(btn.dataset.nct));
+  });
+
+  [search, phaseSel, statusSel, sponsorSel].forEach((el) => el.addEventListener("input", render));
+  render();
+
+  // Deep-link / back-button support.
+  function syncFromHash() {
+    const nct = decodeURIComponent(location.hash.replace(/^#/, ""));
+    if (/^NCT\d+/i.test(nct)) openTrial(nct.toUpperCase(), byId.get(nct.toUpperCase()));
+    else closeDrawer(true);
+  }
+  window.addEventListener("popstate", syncFromHash);
+  if (location.hash) syncFromHash();
+})();
+</script>
+```

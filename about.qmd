@@ -33,6 +33,7 @@ the **Bill & Melinda Gates Foundation**.
 ### Contributors
 
 - Stephanie Perniciaro
+- Deus Thindwa
 - Dominic Cooper-Wootton
 - Maria Deloria Knoll
 - Daniel M. Weinberger

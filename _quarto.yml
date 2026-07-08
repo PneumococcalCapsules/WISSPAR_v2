@@ -21,19 +21,15 @@ website:
         text: Home
       - href: graphical-view.qmd
         text: Graphical View
-      - href: trials.qmd
-        text: Clinical Trials
+      - href: lookup.qmd
+        text: Look up a trial
       - href: resources.qmd
         text: Videos
       - href: about.qmd
         text: About
-      - text: Blog
-        href: https://blog.wisspar.com
+      - href: blog.qmd
+        text: Blog
     right:
-      - text: "Look up a trial"
-        href: https://wisspar.com/view
-      - text: "Data Export"
-        href: https://wisspar.com/export
       - text: "Sign in"
         href: https://wisspar.com/login
   page-footer:

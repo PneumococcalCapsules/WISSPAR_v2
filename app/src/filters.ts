@@ -1,27 +1,33 @@
-// Filter cascade + plot-data subsetting, ported from the original Shiny app
-// (DanWeinberger/PCV_antibodies, app.R). Each exported subset function mirrors
-// one of the reactive({...}) blocks in that file.
+// Filter state + row subsetting for the single-serotype head-to-head views.
+//
+// The tool now focuses on ONE serotype at a time, comparing a reference vaccine
+// against one or more comparators. Population is derived from the timepoint
+// label (as in the source data), and the remaining controls (schedule, phase,
+// sponsor, trial) narrow the set of trial arms that feed the two charts.
 
-import { Row, sortNatural, uniqueInOrder } from "./data";
+import { Row, sortNatural } from "./data";
+import { buildArms, availableComparators } from "./arms";
 
-export type AgeGroup = "Child" | "Adult";
+export type Population = "Child" | "Adult" | "All";
+export type Metric = "gmc" | "opa";
+export type ViewMode = "pooled" | "individual";
 
 export interface FilterState {
-  vax: string[];
-  serotypes: string[];
-  age: AgeGroup;
-  fineAge: string[];
-  schedule: string[];
-  dose: string; // single select
-  pairedOnly: boolean;
-  phase: string[];
+  serotype: string;
   refVax: string;
-  compVax: string;
+  comparators: string[];
+  population: Population;
+  metric: Metric;
+  view: ViewMode;
+  schedules: string[]; // empty = all
+  phases: string[];
   sponsors: string[];
   studyIds: string[];
 }
 
-// ---- Option lists for the cascading sidebar controls ------------------------
+export const assayOf = (m: Metric): string => (m === "gmc" ? "GMC" : "OPA");
+
+// ---- option lists -----------------------------------------------------------
 
 export function allVaccines(rows: Row[]): string[] {
   return sortNatural([...new Set(rows.map((r) => r.vaccine))].filter(Boolean));
@@ -32,165 +38,74 @@ export function allSerotypes(rows: Row[]): string[] {
 }
 
 export function allPhases(rows: Row[]): string[] {
-  return uniqueInOrder(rows, "phase");
+  return sortNatural([...new Set(rows.map((r) => r.phase))].filter(Boolean));
 }
 
-export function fineAgeContainsChild(fineAge: string[]): boolean {
-  return fineAge.some((a) => /Child/.test(a));
+// Vaccines that have any data for this serotype + assay (candidate references).
+export function vaccinesForSerotype(rows: Row[], serotype: string, metric: Metric): string[] {
+  const assay = assayOf(metric);
+  return sortNatural(
+    [
+      ...new Set(
+        rows
+          .filter((r) => r.serotype === serotype && r.assay === assay && r.value != null)
+          .map((r) => r.vaccine),
+      ),
+    ].filter(Boolean),
+  );
 }
 
-// standard_age_list values: "Child" -> those containing Child;
-// "Adult" -> those containing Adult but NOT Child (matches app.R).
-export function fineAgeOptions(rows: Row[], age: AgeGroup): string[] {
-  const vals = [...new Set(rows.map((r) => r.standard_age_list))].filter(Boolean);
-  if (age === "Adult") return vals.filter((v) => /Adult/.test(v) && !/Child/.test(v));
-  return vals.filter((v) => /Child/.test(v));
+// Comparators that co-occur with the reference in a shared arm for this serotype.
+export function comparatorOptions(rows: Row[], s: FilterState): string[] {
+  const assay = assayOf(s.metric);
+  const sub = rows.filter((r) => r.assay === assay);
+  const arms = buildArms(sub, s.serotype, assay);
+  return sortNatural(availableComparators(arms, s.refVax));
 }
 
-export function scheduleOptions(rows: Row[], hasChild: boolean): string[] {
-  const vals = [...new Set(rows.map((r) => r.schedule))].filter(Boolean);
-  return vals.filter((v) => (hasChild ? /child/.test(v) : /adult/.test(v)));
-}
-
-export function doseOptions(rows: Row[], hasChild: boolean): string[] {
-  const vals = [...new Set(rows.map((r) => r.dose_description))].filter(Boolean);
-  return vals.filter((v) => (hasChild ? /child/.test(v) : /adult/.test(v)));
-}
-
-export function defaultDose(hasChild: boolean, options: string[]): string {
-  const wanted = hasChild ? "1m post primary child" : "1m post dose 1 adult";
-  return options.includes(wanted) ? wanted : options[0] ?? "";
-}
-
-// Sponsor / trial options are derived from the vaccine + dose + fine-age + phase
-// subset (output$sponsor_name / output$study_id in app.R).
-function sponsorStudySubset(rows: Row[], s: FilterState): Row[] {
+// Schedule / sponsor / trial options within the current vaccine + serotype scope.
+function scopeRows(rows: Row[], s: FilterState): Row[] {
+  const assay = assayOf(s.metric);
+  const inScope = new Set([s.refVax, ...s.comparators]);
   return rows.filter(
     (r) =>
-      s.vax.includes(r.vaccine) &&
-      r.dose_description === s.dose &&
-      s.fineAge.includes(r.standard_age_list) &&
-      s.phase.includes(r.phase),
+      r.serotype === s.serotype &&
+      r.assay === assay &&
+      r.value != null &&
+      inScope.has(r.vaccine) &&
+      (s.population === "All" || /adult/i.test(r.dose_description) === (s.population === "Adult")),
   );
 }
 
+export function scheduleOptions(rows: Row[], s: FilterState): string[] {
+  return sortNatural([...new Set(scopeRows(rows, s).map((r) => r.schedule))].filter(Boolean));
+}
 export function sponsorOptions(rows: Row[], s: FilterState): string[] {
-  return sortNatural([...new Set(sponsorStudySubset(rows, s).map((r) => r.sponsor))].filter(Boolean));
+  return sortNatural([...new Set(scopeRows(rows, s).map((r) => r.sponsor))].filter(Boolean));
 }
-
 export function studyIdOptions(rows: Row[], s: FilterState): string[] {
-  return sortNatural([...new Set(sponsorStudySubset(rows, s).map((r) => r.study_id))].filter(Boolean));
+  return sortNatural([...new Set(scopeRows(rows, s).map((r) => r.study_id))].filter(Boolean));
 }
 
-// ---- Paired-observation gating ---------------------------------------------
+// ---- row subset that feeds the charts --------------------------------------
 
-function distinctVax(rows: Row[]): number {
-  return new Set(rows.map((r) => r.vax)).size;
-}
-
-// Ungrouped gate (plot.ds.gmc / plot.ds.gmc_ecl / plot.ds.opa): keep everything
-// only if the whole subset spans >= 2 vaccines.
-function pairedGateWhole(sub: Row[], pairedOnly: boolean): Row[] {
-  if (!pairedOnly) return sub;
-  return distinctVax(sub) >= 2 ? sub : [];
-}
-
-// Grouped gate (plot.ds.gmc_elisa): keep groups (study/dose/age/schedule/phase/
-// serotype) that span >= 2 vaccines.
-function pairedGateGrouped(sub: Row[], pairedOnly: boolean): Row[] {
-  const groups = new Map<string, Row[]>();
-  for (const r of sub) {
-    const k = [
-      r.study_id,
-      r.dose_description,
-      r.location_continent,
-      r.study_age,
-      r.schedule,
-      r.phase,
-      r.serotype,
-      r.assay,
-    ].join("");
-    const g = groups.get(k);
-    if (g) g.push(r);
-    else groups.set(k, [r]);
-  }
-  const out: Row[] = [];
-  for (const g of groups.values()) {
-    if (!pairedOnly || distinctVax(g) >= 2) out.push(...g);
-  }
-  return out;
-}
-
-// ---- Plot datasets ----------------------------------------------------------
-
-export function gmcElisaData(rows: Row[], s: FilterState): Row[] {
-  const sub = rows.filter(
+export function filteredRows(rows: Row[], s: FilterState): Row[] {
+  const assay = assayOf(s.metric);
+  const inScope = new Set([s.refVax, ...s.comparators]);
+  const sponsors = new Set(s.sponsors);
+  const studies = new Set(s.studyIds);
+  const phases = new Set(s.phases);
+  const schedules = new Set(s.schedules);
+  return rows.filter(
     (r) =>
-      s.vax.includes(r.vaccine) &&
-      r.dose_description === s.dose &&
-      s.fineAge.includes(r.standard_age_list) &&
-      s.schedule.includes(r.schedule) &&
-      s.phase.includes(r.phase) &&
-      s.serotypes.includes(r.serotype) &&
-      r.assay === "GMC" &&
-      s.sponsors.includes(r.sponsor) &&
-      r.sponsor !== "Merck" &&
-      s.studyIds.includes(r.study_id),
+      r.serotype === s.serotype &&
+      r.assay === assay &&
+      r.value != null &&
+      inScope.has(r.vaccine) &&
+      (s.population === "All" || /adult/i.test(r.dose_description) === (s.population === "Adult")) &&
+      (s.schedules.length === 0 || schedules.has(r.schedule)) &&
+      phases.has(r.phase) &&
+      sponsors.has(r.sponsor) &&
+      studies.has(r.study_id),
   );
-  return pairedGateGrouped(sub, s.pairedOnly);
-}
-
-export function gmcEclData(rows: Row[], s: FilterState): Row[] {
-  const sub = rows.filter(
-    (r) =>
-      s.vax.includes(r.vaccine) &&
-      r.dose_description === s.dose &&
-      s.fineAge.includes(r.standard_age_list) &&
-      s.schedule.includes(r.schedule) &&
-      s.phase.includes(r.phase) &&
-      s.serotypes.includes(r.serotype) &&
-      r.assay === "GMC" &&
-      s.sponsors.includes(r.sponsor) &&
-      r.sponsor === "Merck" &&
-      s.studyIds.includes(r.study_id),
-  );
-  return pairedGateWhole(sub, s.pairedOnly);
-}
-
-export function opaData(rows: Row[], s: FilterState): Row[] {
-  const sub = rows.filter(
-    (r) =>
-      s.vax.includes(r.vaccine) &&
-      r.dose_description === s.dose &&
-      s.fineAge.includes(r.standard_age_list) &&
-      s.phase.includes(r.phase) &&
-      s.serotypes.includes(r.serotype) &&
-      s.schedule.includes(r.schedule) &&
-      r.assay === "OPA" &&
-      s.sponsors.includes(r.sponsor) &&
-      s.studyIds.includes(r.study_id),
-  );
-  return pairedGateWhole(sub, s.pairedOnly);
-}
-
-// Underlying data for the GMC ratio (plot.ds.gmc): includes Merck, no serotype
-// facet split by assay type.
-export function gmcRatioBase(rows: Row[], s: FilterState): Row[] {
-  const sub = rows.filter(
-    (r) =>
-      s.vax.includes(r.vaccine) &&
-      r.dose_description === s.dose &&
-      s.fineAge.includes(r.standard_age_list) &&
-      s.phase.includes(r.phase) &&
-      s.schedule.includes(r.schedule) &&
-      s.serotypes.includes(r.serotype) &&
-      r.assay === "GMC" &&
-      s.sponsors.includes(r.sponsor) &&
-      s.studyIds.includes(r.study_id),
-  );
-  return pairedGateWhole(sub, s.pairedOnly);
-}
-
-export function anyMerckSelected(s: FilterState): boolean {
-  return s.sponsors.includes("Merck");
 }
