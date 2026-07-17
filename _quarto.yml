@@ -32,8 +32,16 @@ website:
       - href: blog.qmd
         text: Blog
     right:
-      - text: "Sign in"
-        href: https://wisspar.com/login
+      - text: "Download the Data"
+        icon: download
+        href: https://github.com/PneumococcalCapsules/WISSPAR/raw/refs/heads/main/data/wisspar_export_production.csv
+        target: _blank
+        rel: noopener
+      - icon: github
+        href: https://github.com/PneumococcalCapsules/WISSPAR/blob/main/data/wisspar_export_production.csv
+        aria-label: "View the dataset on GitHub"
+        target: _blank
+        rel: noopener
   page-footer:
     background: light
     left: |
