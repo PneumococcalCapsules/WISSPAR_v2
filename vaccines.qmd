@@ -1,22 +1,11 @@
 ---
 title: "Vaccines"
-pagetitle: "WISSPAR — Vaccines"
+pagetitle: "WISSPAR — Vaccine catalog"
 ---
 
-A catalog of the pneumococcal vaccines tracked in the WISSPAR database — manufacturer,
-serotype composition, and which clinical trials in this database evaluate each product.
-Search by name, manufacturer, or serotype, and click a card to expand its trial list.
+Search by name, manufacturer, or serotype, and click a card to expand the trials associated with that vaccine that are in the WISSPAR database.
 
-::: {.wisspar-caveat}
-Manufacturer, serotype composition, and licensure status below are curated reference
-information (FDA/EMA/WHO product labels, prequalification listings, and trial
-registrations) — not derived from the immunogenicity data itself. Trial (NCT) and
-phase links, by contrast, are pulled live from the same dataset that powers the
-[Graphical View](graphical-view.qmd) and [Clinical Trials Overview](trials.qmd).
-Two entries — **PCV14 (PneuBevax)** and **PCV25 (Inventprise)** — are marked
-*provisional* because their serotype composition could only be confirmed against
-secondary sources rather than a regulatory label at the time this page was built.
-:::
+Two entries — **PCV14 (PneuBevax)** and **PCV25 (Inventprise)** — are marked *provisional* because their serotype composition could only be confirmed against secondary sources rather than a regulatory label at the time this page was built.
 
 ```{=html}
 <div class="trials-controls">
@@ -56,14 +45,6 @@ const CATALOG = [
     status: "Licensed / WHO prequalified",
     serotypes: ["1", "5", "6A", "6B", "7F", "9V", "14", "19A", "19F", "23F"],
     datasetLabels: ["PCV10 (Pneumosil)"],
-  },
-  {
-    name: "PCV10 (GSK investigational)", brand: "PHiD-CV + dPly/PhtD (candidate code 2189242A)",
-    manufacturer: "GlaxoSmithKline (GSK)",
-    status: "Investigational — never licensed",
-    serotypes: ["1", "4", "5", "6B", "7F", "9V", "14", "18C", "19F", "23F"],
-    serotypeNote: "Same 10-serotype PHiD-CV (Synflorix) backbone, evaluated in high-dose (HD) and low-dose (LD) arms with two added non-serotype protein antigens (dPly, PhtD) rather than additional serotypes.",
-    datasetLabels: ["PCV10 (GSK 2189242A HD)", "PCV10 (GSK 2189242A LD)"],
   },
   {
     name: "PCV13 (Pfizer)", brand: "Prevnar 13 / Prevenar 13",
@@ -136,6 +117,14 @@ const CATALOG = [
     status: "Licensed",
     serotypes: ["1", "2", "3", "4", "5", "6B", "7F", "8", "9N", "9V", "10A", "11A", "12F", "14", "15B", "17F", "18C", "19F", "19A", "20", "22F", "23F", "33F"],
     datasetLabels: ["PPV23"],
+  },
+  {
+    name: "PCV10 (GSK investigational)", brand: "PHiD-CV + dPly/PhtD (candidate code 2189242A)",
+    manufacturer: "GlaxoSmithKline (GSK)",
+    status: "Investigational — never licensed",
+    serotypes: ["1", "4", "5", "6B", "7F", "9V", "14", "18C", "19F", "23F"],
+    serotypeNote: "Same 10-serotype PHiD-CV (Synflorix) backbone, evaluated in high-dose (HD) and low-dose (LD) arms with two added non-serotype protein antigens (dPly, PhtD) rather than additional serotypes.",
+    datasetLabels: ["PCV10 (GSK 2189242A HD)", "PCV10 (GSK 2189242A LD)"],
   },
 ];
 
