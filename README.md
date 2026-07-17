@@ -7,6 +7,7 @@ vaccine clinical trials.
 This is a [Quarto](https://quarto.org) static website. The interactive
 "Graphical View" is a React + Plotly.js app that replaces the original R Shiny
 tool ([DanWeinberger/PCV_antibodies](https://github.com/DanWeinberger/PCV_antibodies)).
+The data are processed and stored on PneumococcalCapsules/WISSPAR and mirrored here for display.
 
 ## Structure
 
