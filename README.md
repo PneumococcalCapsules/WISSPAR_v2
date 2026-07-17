@@ -42,7 +42,7 @@ quarto preview
 
 ## Data
 
-`data/wisspar_export.json` is produced from the wisspar.com export endpoint by
+`data/wisspar_export.json` is produced from the [WISSPAR GitHub CSV export](https://github.com/PneumococcalCapsules/WISSPAR/raw/refs/heads/main/data/wisspar_export_production.csv) by
 `scripts/fetch-data.mjs`, which applies the same transforms as the original
 Shiny app (Wyeth→Pfizer, Merck grouping, `PCV13`→`PCV13 (Pfizer)`, `IgG`→`GMC`,
 etc.). The **Refresh data** GitHub Action re-fetches it daily and commits changes;
