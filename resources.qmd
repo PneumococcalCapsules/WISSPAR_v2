@@ -27,4 +27,5 @@ transcript of this walkthrough will be linked here once available.
 
 - [Blog](blog.qmd) — updates, methods notes, and commentary.
 - [Graphical View](graphical-view.qmd) — the interactive immunogenicity comparison tool.
+- [Vaccines](vaccines.qmd) — manufacturer, serotypes, and trials for each vaccine.
 - [Clinical Trials Overview](trials.qmd) — browse the trials in the database.

@@ -274,3 +274,28 @@ body.lk-noscroll { overflow: hidden; }
   .lk-grid { grid-template-columns: 1fr; gap: 0.05rem; }
   .lk-k { margin-top: 0.4rem; }
 }
+
+/* ----- Vaccines catalog: expandable cards ----- */
+#vx-list { margin-top: 0.75rem; }
+.vx-card {
+  border: 1px solid #e6e6e6;
+  border-radius: 10px;
+  margin-bottom: 0.6rem;
+  background: #fff;
+}
+.vx-card > summary {
+  cursor: pointer;
+  list-style: none;
+  padding: 0.75rem 1rem;
+}
+.vx-card > summary::-webkit-details-marker { display: none; }
+.vx-card > summary::before { content: "▸ "; color: #9aa7b8; }
+.vx-card[open] > summary::before { content: "▾ "; }
+.vx-card:hover { border-color: #cdd8e6; }
+.vx-card-top { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem 0.75rem; }
+.vx-name { font-weight: 700; font-size: 1.02rem; }
+.vx-card-sub { margin-top: 0.3rem; color: #6b6b6b; font-size: 0.85rem; }
+.vx-card-body { padding: 0 1rem 1rem; border-top: 1px solid #ededed; margin-top: 0.5rem; padding-top: 0.75rem; }
+.vx-subhead { font-weight: 700; color: #333; margin: 0.9rem 0 0.5rem; font-size: 0.85rem; }
+.vx-subhead:first-child { margin-top: 0; }
+.vx-tablewrap { overflow-x: auto; margin: 0.5rem 0; }

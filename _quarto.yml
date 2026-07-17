@@ -21,6 +21,8 @@ website:
         text: Home
       - href: graphical-view.qmd
         text: Graphical View
+      - href: vaccines.qmd
+        text: Vaccines
       - href: lookup.qmd
         text: Look up a trial
       - href: resources.qmd
