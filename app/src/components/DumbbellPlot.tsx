@@ -144,8 +144,8 @@ export function DumbbellPlot({
           );
         // reference dot
         marks.push(
-          <circle key={`${r.key}-rd${j}`} cx={X(r.ref.val)} cy={ly} r={5} fill={REF_COLOR}
-            stroke={CARD} strokeWidth={1.5} tabIndex={0}
+          <circle key={`${r.key}-rd${j}`} cx={X(r.ref.val)} cy={ly} r={5} fill={CARD}
+            stroke={REF_COLOR} strokeWidth={2} tabIndex={0}
             onMouseMove={(e) => show(e, dotTip(r, r.ref, refVax, REF_COLOR))}
             onFocus={(e) => showAtElement(e.currentTarget, dotTip(r, r.ref, refVax, REF_COLOR))}
             onMouseLeave={hide} onBlur={hide} style={{ cursor: "default" }} />,

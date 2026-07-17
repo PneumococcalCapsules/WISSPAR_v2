@@ -41,24 +41,39 @@ export function allPhases(rows: Row[]): string[] {
   return sortNatural([...new Set(rows.map((r) => r.phase))].filter(Boolean));
 }
 
-// Vaccines that have any data for this serotype + assay (candidate references).
-export function vaccinesForSerotype(rows: Row[], serotype: string, metric: Metric): string[] {
+// Vaccines that have any data for this serotype + assay + population (candidate references).
+export function vaccinesForSerotype(
+  rows: Row[],
+  serotype: string,
+  metric: Metric,
+  population: Population = "All",
+): string[] {
   const assay = assayOf(metric);
   return sortNatural(
     [
       ...new Set(
         rows
-          .filter((r) => r.serotype === serotype && r.assay === assay && r.value != null)
+          .filter(
+            (r) =>
+              r.serotype === serotype &&
+              r.assay === assay &&
+              r.value != null &&
+              (population === "All" || /adult/i.test(r.dose_description) === (population === "Adult")),
+          )
           .map((r) => r.vaccine),
       ),
     ].filter(Boolean),
   );
 }
 
-// Comparators that co-occur with the reference in a shared arm for this serotype.
+// Comparators that co-occur with the reference in a shared arm for this serotype + population.
 export function comparatorOptions(rows: Row[], s: FilterState): string[] {
   const assay = assayOf(s.metric);
-  const sub = rows.filter((r) => r.assay === assay);
+  const sub = rows.filter(
+    (r) =>
+      r.assay === assay &&
+      (s.population === "All" || /adult/i.test(r.dose_description) === (s.population === "Adult")),
+  );
   const arms = buildArms(sub, s.serotype, assay);
   return sortNatural(availableComparators(arms, s.refVax));
 }

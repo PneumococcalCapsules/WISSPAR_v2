@@ -169,6 +169,22 @@ const POPS: { value: Population; label: string }[] = [
 export function Sidebar({ state, set, allVax, options }: SidebarProps) {
   return (
     <aside className="wf-sidebar">
+      <Section title="Population">
+        <div className="wf-seg-group" role="group" aria-label="Population">
+          {POPS.map((p) => (
+            <button
+              key={p.value}
+              type="button"
+              className={`wf-segbtn${state.population === p.value ? " active" : ""}`}
+              aria-pressed={state.population === p.value}
+              onClick={() => set({ population: p.value })}
+            >
+              {p.label}
+            </button>
+          ))}
+        </div>
+      </Section>
+
       <Section title="Serotype">
         <Field label="Serotype to view:">
           <Single options={options.serotypes} value={state.serotype} onChange={(serotype) => set({ serotype })} />
@@ -188,22 +204,6 @@ export function Sidebar({ state, set, allVax, options }: SidebarProps) {
             onChange={(comparators) => set({ comparators })}
           />
         </Field>
-      </Section>
-
-      <Section title="Population">
-        <div className="wf-seg-group" role="group" aria-label="Population">
-          {POPS.map((p) => (
-            <button
-              key={p.value}
-              type="button"
-              className={`wf-segbtn${state.population === p.value ? " active" : ""}`}
-              aria-pressed={state.population === p.value}
-              onClick={() => set({ population: p.value })}
-            >
-              {p.label}
-            </button>
-          ))}
-        </div>
       </Section>
 
       <Section title="Advanced filters" collapsible defaultOpen={false}>

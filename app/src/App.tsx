@@ -48,7 +48,7 @@ function initState(rows: Row[]): FilterState {
     sponsors: [],
     studyIds: [],
   };
-  base.refVax = pickRef(vaccinesForSerotype(rows, serotype, base.metric));
+  base.refVax = pickRef(vaccinesForSerotype(rows, serotype, base.metric, base.population));
   base.comparators = pickComps(comparatorOptions(rows, base));
   base.sponsors = sponsorOptions(rows, base);
   base.studyIds = studyIdOptions(rows, base);
@@ -63,13 +63,13 @@ export function App({ rows }: { rows: Row[] }) {
   const optSero = useMemo(() => allSerotypes(rows), [rows]);
   const optPhase = useMemo(() => allPhases(rows), [rows]);
   const optRef = useMemo(
-    () => vaccinesForSerotype(rows, state.serotype, state.metric),
-    [rows, state.serotype, state.metric],
+    () => vaccinesForSerotype(rows, state.serotype, state.metric, state.population),
+    [rows, state.serotype, state.metric, state.population],
   );
   const optComp = useMemo(
     () => comparatorOptions(rows, state),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [rows, state.serotype, state.metric, state.refVax],
+    [rows, state.serotype, state.metric, state.refVax, state.population],
   );
   const optSched = useMemo(
     () => scheduleOptions(rows, state),
