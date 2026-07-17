@@ -62,6 +62,23 @@ export function ratioLnSE(ref: Point, comp: Point): number | null {
 const geoMean = (xs: number[]): number =>
   Math.exp(xs.reduce((s, x) => s + Math.log(x), 0) / xs.length);
 
+// Reject CI bounds that can't be a real CI for this point estimate: non-positive
+// (0 is used in the source data to mean "not reported"), or inconsistent with the
+// value itself (a source data-entry error, e.g. a different column copied in by
+// mistake). An invalid CI is treated as absent rather than plotted, since a bad
+// bound would both draw a nonsense whisker and drag the shared log-scale domain
+// out to cover it, compressing every other arm's CI on the same chart.
+function sanitizeCI(
+  val: number,
+  lo: number | null | undefined,
+  hi: number | null | undefined,
+): { lo: number | null; hi: number | null } {
+  if (lo == null || hi == null || lo <= 0 || hi <= 0 || lo > val || hi < val) {
+    return { lo: null, hi: null };
+  }
+  return { lo, hi };
+}
+
 // Build arms from an already row-filtered subset (phase / sponsor / study /
 // schedule / timepoint filters applied by the caller). Only value > 0 rows in
 // the requested assay contribute.
@@ -91,11 +108,13 @@ export function buildArms(rows: Row[], serotype: string, assay: string): Arm[] {
       cur.lo = null;
       cur.hi = null;
     } else {
+      const val = Math.round(r.value * 100) / 100;
+      const { lo, hi } = sanitizeCI(val, r.lower_limit, r.upper_limit);
       arm.vals[r.vaccine] = {
         vaccine: r.vaccine,
-        val: Math.round(r.value * 100) / 100,
-        lo: r.lower_limit ?? null,
-        hi: r.upper_limit ?? null,
+        val,
+        lo,
+        hi,
         n: 1,
       };
     }
