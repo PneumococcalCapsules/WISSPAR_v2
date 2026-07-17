@@ -11,22 +11,23 @@ ClinicalTrials.gov link out to their full protocol record.
 
 ```{=html}
 <div class="trials-controls">
-  <input id="trials-search" type="search" placeholder="Search trial, sponsor, vaccine…" style="min-width:280px;" />
-  <select id="trials-phase"><option value="">All phases</option></select>
-  <select id="trials-sponsor"><option value="">All sponsors</option></select>
+  <input id="trials-search" type="search" placeholder="Search trial, sponsor, vaccine…" aria-label="Search trials by trial number, sponsor, or vaccine" style="min-width:280px;" />
+  <select id="trials-phase" aria-label="Filter by phase"><option value="">All phases</option></select>
+  <select id="trials-sponsor" aria-label="Filter by sponsor"><option value="">All sponsors</option></select>
 </div>
 <div class="trials-count" id="trials-count"></div>
 <div style="overflow-x:auto;">
 <table id="trials-table">
+  <caption>Pneumococcal vaccine clinical trials in the WISSPAR database</caption>
   <thead>
     <tr>
-      <th data-key="study_id">Trial</th>
-      <th data-key="sponsor">Sponsor</th>
-      <th data-key="phase">Phase</th>
-      <th data-key="continents">Region</th>
-      <th data-key="vaccines">Vaccines</th>
-      <th data-key="nSerotypes">Serotypes</th>
-      <th data-key="assays">Assays</th>
+      <th data-key="study_id" scope="col">Trial</th>
+      <th data-key="sponsor" scope="col">Sponsor</th>
+      <th data-key="phase" scope="col">Phase</th>
+      <th data-key="continents" scope="col">Region</th>
+      <th data-key="vaccines" scope="col">Vaccines</th>
+      <th data-key="nSerotypes" scope="col">Serotypes</th>
+      <th data-key="assays" scope="col">Assays</th>
     </tr>
   </thead>
   <tbody></tbody>
@@ -69,7 +70,7 @@ function aggregate(rows) {
 
 function trialLink(id) {
   return /^NCT/.test(id)
-    ? `<a href="https://clinicaltrials.gov/study/${id}" target="_blank" rel="noopener">${id}</a>`
+    ? `<a href="https://clinicaltrials.gov/study/${id}" target="_blank" rel="noopener">${id}<span class="visually-hidden"> (opens in a new tab)</span></a>`
     : id;
 }
 

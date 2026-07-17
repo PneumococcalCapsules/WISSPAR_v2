@@ -16,13 +16,13 @@ export function Segmented<T extends string>({
   return (
     <div className="wf-segmented-wrap">
       {label && <span className="wf-segmented-label">{label}</span>}
-      <div className="wf-segmented" role="tablist">
+      <div className="wf-segmented" role="radiogroup" aria-label={label?.replace(/:$/, "")}>
         {options.map((o) => (
           <button
             key={o.value}
             type="button"
-            role="tab"
-            aria-selected={o.value === value}
+            role="radio"
+            aria-checked={o.value === value}
             className={`wf-seg${o.value === value ? " active" : ""}`}
             onClick={() => onChange(o.value)}
           >

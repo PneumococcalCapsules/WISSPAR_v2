@@ -61,7 +61,7 @@ export function DumbbellPlot({
   threshold?: number;
   emptyMessage: string;
 }) {
-  const { show, hide, node } = useTooltip();
+  const { show, showAtElement, hide, node } = useTooltip();
   const [ref, W] = useContainerWidth(600);
 
   if (rows.length === 0) {
@@ -145,16 +145,18 @@ export function DumbbellPlot({
         // reference dot
         marks.push(
           <circle key={`${r.key}-rd${j}`} cx={X(r.ref.val)} cy={ly} r={5} fill={REF_COLOR}
-            stroke={CARD} strokeWidth={1.5}
+            stroke={CARD} strokeWidth={1.5} tabIndex={0}
             onMouseMove={(e) => show(e, dotTip(r, r.ref, refVax, REF_COLOR))}
-            onMouseLeave={hide} style={{ cursor: "default" }} />,
+            onFocus={(e) => showAtElement(e.currentTarget, dotTip(r, r.ref, refVax, REF_COLOR))}
+            onMouseLeave={hide} onBlur={hide} style={{ cursor: "default" }} />,
         );
         // comparator dot
         marks.push(
           <circle key={`${r.key}-cd${j}`} cx={X(cp.val)} cy={ly} r={5} fill={col}
-            stroke={CARD} strokeWidth={1.5}
+            stroke={CARD} strokeWidth={1.5} tabIndex={0}
             onMouseMove={(e) => show(e, dotTip(r, cp, cp.vaccine, col))}
-            onMouseLeave={hide} style={{ cursor: "default" }} />,
+            onFocus={(e) => showAtElement(e.currentTarget, dotTip(r, cp, cp.vaccine, col))}
+            onMouseLeave={hide} onBlur={hide} style={{ cursor: "default" }} />,
         );
       });
       marks.push(
@@ -171,7 +173,9 @@ export function DumbbellPlot({
 
   return (
     <div className="wf-svg-scroll" ref={ref as React.RefObject<HTMLDivElement>}>
-      <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`} role="img" style={{ display: "block" }}>
+      <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`} role="img"
+        aria-label={`Dumbbell plot of ${valueTitle} comparing ${refVax} (reference) to the selected comparator vaccines across trial arms. Tab to a point to hear its value.`}
+        style={{ display: "block" }}>
         {gridEls}
         {showThreshold && (
           <>

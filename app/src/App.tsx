@@ -200,7 +200,7 @@ export function App({ rows }: { rows: Row[] }) {
           studyIds: optStudy,
         }}
       />
-      <main className="wf-main">
+      <div className="wf-main">
         <div className="wf-toolbar">
           <div className="wf-toolbar-title">
             Serotype <b>{state.serotype}</b> · reference{" "}
@@ -229,7 +229,7 @@ export function App({ rows }: { rows: Row[] }) {
           </div>
         </div>
 
-        <Tabs idPrefix="main" tabs={tabs} />
+        <Tabs idPrefix="main" tabs={tabs} label="Chart view" />
 
         <div className="wf-infobox wf-warn">
           <strong>Important information.</strong> This database is still under development — please
@@ -238,7 +238,7 @@ export function App({ rows }: { rows: Row[] }) {
           conducted by different sponsors, which might use different assays. GMC values pool ELISA
           and ECL reads; use the sponsor filter to isolate assay-comparable trials.
         </div>
-      </main>
+      </div>
     </div>
   );
 }

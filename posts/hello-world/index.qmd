@@ -5,6 +5,7 @@ author: "The WISSPAR Team"
 date: "2022-06-22"
 categories: [updates]
 image: images/logo-new.png
+image-alt: "WISSPAR pneumococcus mascot logo"
 ---
 
 Welcome to **WISSPAR**, the Worldwide Index of Serotype Specific Antibody

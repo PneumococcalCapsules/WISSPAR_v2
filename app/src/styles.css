@@ -4,7 +4,7 @@
 #wisspar-app {
   --wf-border: #dbdbdb;
   --wf-muted: #6b6b6b;
-  --wf-green: #009879;
+  --wf-green: #00806a;
   --wf-blue: #3273dc;
   font-family: BlinkMacSystemFont, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   color: #363636;
@@ -32,11 +32,13 @@
 /* Sidebar sections */
 #wisspar-app .wf-section { border-bottom: 1px solid #e7ebf0; padding: 0.55rem 0; }
 #wisspar-app .wf-section:last-child { border-bottom: none; }
+#wisspar-app .wf-section-head-wrap { margin: 0; }
 #wisspar-app .wf-section-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
   width: 100%;
+  margin: 0;
   font-size: 0.7rem;
   font-weight: 700;
   letter-spacing: 0.06em;
@@ -57,10 +59,12 @@
 #wisspar-app .wf-caret { font-size: 1rem; line-height: 1; color: #9aa0a6; }
 #wisspar-app .wf-section-body { margin-top: 0.55rem; }
 
-#wisspar-app .wf-field { margin-bottom: 0.7rem; }
+#wisspar-app .wf-field { margin: 0 0 0.7rem; border: none; padding: 0; min-width: 0; }
 #wisspar-app .wf-field:last-child { margin-bottom: 0; }
 #wisspar-app .wf-label {
   display: block;
+  width: 100%;
+  padding: 0;
   font-weight: 600;
   font-size: 0.82rem;
   margin-bottom: 0.3rem;
@@ -281,6 +285,13 @@
   margin: 0 0 0.6rem 2px;
 }
 #wisspar-app .wf-legend-note b { color: #1a1a1a; }
+
+/* Visible focus ring for keyboard-focusable chart data points */
+#wisspar-app svg circle:focus-visible,
+#wisspar-app svg path:focus-visible {
+  outline: 2px solid #1a1a1a;
+  outline-offset: 2px;
+}
 
 /* SVG chart container */
 #wisspar-app .wf-svg-scroll {

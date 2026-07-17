@@ -11,10 +11,10 @@ reported results where available. Details are pulled from a static snapshot of
 
 ```{=html}
 <div class="trials-controls">
-  <input id="lk-search" type="search" placeholder="Search NCT, title, sponsor, vaccine, country…" style="flex:1;min-width:280px;" />
-  <select id="lk-phase"><option value="">All phases</option></select>
-  <select id="lk-status"><option value="">All statuses</option></select>
-  <select id="lk-sponsor"><option value="">All sponsors</option></select>
+  <input id="lk-search" type="search" placeholder="Search NCT, title, sponsor, vaccine, country…" aria-label="Search trials by NCT number, title, sponsor, vaccine, or country" style="flex:1;min-width:280px;" />
+  <select id="lk-phase" aria-label="Filter by phase"><option value="">All phases</option></select>
+  <select id="lk-status" aria-label="Filter by status"><option value="">All statuses</option></select>
+  <select id="lk-sponsor" aria-label="Filter by sponsor"><option value="">All sponsors</option></select>
 </div>
 <div class="trials-count" id="lk-count"></div>
 <div id="lk-results"></div>
@@ -66,11 +66,12 @@ function tagRow(items, cls = "") {
     .map((x) => `<span class="lk-tag ${cls}">${esc(x)}</span>`).join("");
   return t ? `<div class="lk-tags lk-tags--wrap">${t}</div>` : "";
 }
-function table(headers, rows) {
+function table(headers, rows, caption) {
   if (!rows || !rows.length) return "";
-  const thead = `<tr>${headers.map((h) => `<th>${esc(h)}</th>`).join("")}</tr>`;
+  const thead = `<tr>${headers.map((h) => `<th scope="col">${esc(h)}</th>`).join("")}</tr>`;
   const tbody = rows.map((r) => `<tr>${r.map((c) => `<td>${c}</td>`).join("")}</tr>`).join("");
-  return `<div class="lk-tablewrap"><table class="lk-table"><thead>${thead}</thead><tbody>${tbody}</tbody></table></div>`;
+  const capHtml = caption ? `<caption>${esc(caption)}</caption>` : "";
+  return `<div class="lk-tablewrap"><table class="lk-table">${capHtml}<thead>${thead}</thead><tbody>${tbody}</tbody></table></div>`;
 }
 
 /* ---------- detail-record section renderers ---------- */
@@ -205,7 +206,7 @@ function renderLocations(p) {
     l.status ? `<span class="lk-tag lk-tag--status">${esc(titleCase(l.status))}</span>` : "—",
   ]);
   return `<div class="lk-muted">${locs.length} location${locs.length === 1 ? "" : "s"}</div>`
-    + table(["Facility", "City / State", "Country", "Status"], rows);
+    + table(["Facility", "City / State", "Country", "Status"], rows, "Trial locations");
 }
 
 function renderReferences(p) {
@@ -215,7 +216,7 @@ function renderReferences(p) {
   return refs.map((r) => {
     const cite = esc(r.citation || "");
     const link = r.pmid
-      ? ` <a href="https://pubmed.ncbi.nlm.nih.gov/${esc(r.pmid)}/" target="_blank" rel="noopener">PMID ${esc(r.pmid)} ↗</a>`
+      ? ` <a href="https://pubmed.ncbi.nlm.nih.gov/${esc(r.pmid)}/" target="_blank" rel="noopener">PMID ${esc(r.pmid)} <span aria-hidden="true">↗</span><span class="visually-hidden"> (opens in a new tab)</span></a>`
       : "";
     const type = r.type ? `<span class="lk-tag">${esc(titleCase(r.type))}</span> ` : "";
     return `<div class="lk-item"><div>${type}${cite}${link}</div></div>`;
@@ -248,7 +249,7 @@ function renderParticipantFlow(pf) {
       fmtInt(started[g.id]),
       fmtInt(completed[g.id]),
     ]);
-    html += table(["Group", "Started", "Completed"], rows);
+    html += table(["Group", "Started", "Completed"], rows, "Participant flow by group");
     if (periods.length > 1 || (per.title && per.title !== "Overall Study"))
       html += `<div class="lk-muted">Milestones shown for period: ${esc(per.title || "—")}. See full record for all periods.</div>`;
   }
@@ -269,7 +270,7 @@ function renderAdverseEvents(ae) {
       affRow(g.otherNumAffected, g.otherNumAtRisk),
     ]);
     html += `<div class="lk-subhead">Summary (subjects affected / at risk)</div>`;
-    html += table(["Group", "Deaths", "Serious AEs", "Other AEs"], rows);
+    html += table(["Group", "Deaths", "Serious AEs", "Other AEs"], rows, "Adverse event summary by group");
   }
   const topEvents = (list, label) => {
     const evs = (list || []).slice().sort((a, b) => {
@@ -283,7 +284,7 @@ function renderAdverseEvents(ae) {
       fmtInt((e.stats || []).reduce((n, s) => n + (s.numAffected || 0), 0)),
     ]);
     return `<div class="lk-subhead">${label} <span class="lk-muted">(top ${evs.length} by subjects affected)</span></div>`
-      + table(["Term", "Organ system", "Subjects affected"], rows);
+      + table(["Term", "Organ system", "Subjects affected"], rows, label);
   };
   html += topEvents(ae.seriousEvents, "Serious adverse events");
   html += topEvents(ae.otherEvents, "Other adverse events");
@@ -324,7 +325,7 @@ function renderOutcomeMeasures(om) {
         rows.push([esc(cat.title || (m.title)), ...cells]);
       });
       if (rows.length)
-        dataTable = table(["", ...groups.map((g) => g.title)], rows);
+        dataTable = table(["", ...groups.map((g) => g.title)], rows, `${m.title} by group`);
     }
     return `<details class="lk-more"><summary>${esc(m.title)} <span class="lk-tag">${esc(titleCase(m.type))}</span></summary>
       ${m.description ? `<p class="lk-prose">${nl2br(m.description)}</p>` : ""}
@@ -349,7 +350,7 @@ function renderRecord(detail, indexRow) {
   ].filter(Boolean).join("");
 
   const header = `<div class="lk-drawer-header">
-    <div class="lk-drawer-nct"><a href="https://clinicaltrials.gov/study/${esc(nct)}" target="_blank" rel="noopener">${esc(nct)} ↗</a></div>
+    <div class="lk-drawer-nct"><a href="https://clinicaltrials.gov/study/${esc(nct)}" target="_blank" rel="noopener">${esc(nct)} <span aria-hidden="true">↗</span><span class="visually-hidden"> (opens in a new tab)</span></a></div>
     <h2 id="lk-drawer-title">${esc(title)}</h2>
     ${id.officialTitle && id.officialTitle !== title ? `<p class="lk-official">${esc(id.officialTitle)}</p>` : ""}
     <div class="lk-tags lk-tags--wrap">${badges}</div>
@@ -374,12 +375,12 @@ function renderRecord(detail, indexRow) {
     ].join("");
     if (resHtml.trim()) {
       sections.push(`<div class="lk-results-banner">Reported results
-        <a href="https://clinicaltrials.gov/study/${esc(nct)}?tab=results" target="_blank" rel="noopener">Full results on ClinicalTrials.gov ↗</a></div>`);
+        <a href="https://clinicaltrials.gov/study/${esc(nct)}?tab=results" target="_blank" rel="noopener">Full results on ClinicalTrials.gov <span aria-hidden="true">↗</span><span class="visually-hidden"> (opens in a new tab)</span></a></div>`);
       sections.push(resHtml);
     }
   }
 
-  sections.push(`<p class="lk-link"><a href="https://clinicaltrials.gov/study/${esc(nct)}" target="_blank" rel="noopener">View the complete record on ClinicalTrials.gov ↗</a></p>`);
+  sections.push(`<p class="lk-link"><a href="https://clinicaltrials.gov/study/${esc(nct)}" target="_blank" rel="noopener">View the complete record on ClinicalTrials.gov <span aria-hidden="true">↗</span><span class="visually-hidden"> (opens in a new tab)</span></a></p>`);
 
   return header + `<div class="lk-drawer-body">${sections.filter(Boolean).join("")}</div>`;
 }
@@ -412,7 +413,7 @@ async function openTrial(nct, indexRow) {
     drawerContent.innerHTML = renderRecord(detail, indexRow);
   } catch (e) {
     drawerContent.innerHTML = `<div class="lk-drawer-loading">Could not load this record.
-      <a href="https://clinicaltrials.gov/study/${esc(nct)}" target="_blank" rel="noopener">Open it on ClinicalTrials.gov ↗</a></div>`;
+      <a href="https://clinicaltrials.gov/study/${esc(nct)}" target="_blank" rel="noopener">Open it on ClinicalTrials.gov <span aria-hidden="true">↗</span><span class="visually-hidden"> (opens in a new tab)</span></a></div>`;
   }
 }
 
@@ -428,7 +429,23 @@ function closeDrawer(fromPop) {
 
 document.getElementById("lk-drawer-close").addEventListener("click", () => closeDrawer());
 backdrop.addEventListener("click", () => closeDrawer());
-document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeDrawer(); });
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") { closeDrawer(); return; }
+  if (e.key !== "Tab" || !drawer.classList.contains("is-open")) return;
+  const focusables = drawerPanel.querySelectorAll(
+    'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+  );
+  if (!focusables.length) return;
+  const first = focusables[0];
+  const last = focusables[focusables.length - 1];
+  if (e.shiftKey && document.activeElement === first) {
+    e.preventDefault();
+    last.focus();
+  } else if (!e.shiftKey && document.activeElement === last) {
+    e.preventDefault();
+    first.focus();
+  }
+});
 
 /* ---------- list + search ---------- */
 (async function () {

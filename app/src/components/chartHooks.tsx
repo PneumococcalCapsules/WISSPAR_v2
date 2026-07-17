@@ -8,6 +8,12 @@ export function useTooltip() {
   const show = useCallback((e: React.MouseEvent, html: string) => {
     setTip({ x: e.clientX, y: e.clientY, html });
   }, []);
+  // Keyboard-focus equivalent of `show`: positions the tooltip from the
+  // focused element's own location instead of a mouse event.
+  const showAtElement = useCallback((el: Element, html: string) => {
+    const r = el.getBoundingClientRect();
+    setTip({ x: r.left + r.width / 2, y: r.top, html });
+  }, []);
   const hide = useCallback(() => setTip(null), []);
 
   const node = tip ? (
@@ -21,7 +27,7 @@ export function useTooltip() {
     />
   ) : null;
 
-  return { show, hide, node };
+  return { show, showAtElement, hide, node };
 }
 
 export function useContainerWidth(min = 560): [React.RefObject<HTMLDivElement>, number] {

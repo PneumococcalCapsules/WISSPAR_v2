@@ -5,6 +5,7 @@ author: "Stephanie Perniciaro"
 date: "2023-03-20"
 categories: [updates]
 image: images/postprimaryIgG.png
+image-alt: "Chart of post-primary IgG geometric mean concentrations across PCV7, PCV13, and PCV20"
 ---
 
 The seven-valent pneumococcal conjugate vaccine (PCV7) represented a significant
@@ -32,21 +33,28 @@ increases, with PCV20 producing consistently lower responses than PCV13. Despite
 lower antibody responses with increased valency, concentrations remain above the
 protective thresholds for preventing invasive disease.
 
-![Post-primary IgG GMCs for the seven original serotypes](images/postprimaryIgG.png)
+![Post-primary IgG GMCs for the seven original serotypes](images/postprimaryIgG.png){fig-alt="Line chart of post-primary IgG geometric mean concentrations for serotypes 4, 6B, 9V, 14, 18C, 19F, and 23F, comparing PCV7, PCV13, and PCV20. GMCs decrease as vaccine valency increases, with PCV20 consistently lowest."}
 
 ### Post-primary OPA GMTs
 
-![Post-primary OPA GMTs for the seven original serotypes](images/postprimary7stOPA.png)
+OPA responses to the seven original serotypes follow the same declining trend as
+IgG after the primary series, with PCV20 again producing the lowest geometric
+mean titers of the three vaccines.
+
+![Post-primary OPA GMTs for the seven original serotypes](images/postprimary7stOPA.png){fig-alt="Line chart of post-primary OPA geometric mean titers for serotypes 4, 6B, 9V, 14, 18C, 19F, and 23F, comparing PCV7, PCV13, and PCV20. Titers decrease as vaccine valency increases, with PCV20 consistently lowest."}
 
 ### Post-booster IgG GMCs
 
 This declining pattern continues following the booster dose.
 
-![Post-booster IgG GMCs for the seven original serotypes](images/postboosterIgG.png)
+![Post-booster IgG GMCs for the seven original serotypes](images/postboosterIgG.png){fig-alt="Line chart of post-booster IgG geometric mean concentrations for serotypes 4, 6B, 9V, 14, 18C, 19F, and 23F, comparing PCV7, PCV13, and PCV20. As with the post-primary results, PCV20 shows the lowest GMCs."}
 
 ### Post-booster OPA GMTs
 
-![Post-booster OPA GMTs for the seven original serotypes](images/postbooster7stOPA.png)
+The same pattern holds for functional antibody after the booster dose: OPA
+titers decline as valency increases, with PCV20 lowest among the three vaccines.
+
+![Post-booster OPA GMTs for the seven original serotypes](images/postbooster7stOPA.png){fig-alt="Line chart of post-booster OPA geometric mean titers for serotypes 4, 6B, 9V, 14, 18C, 19F, and 23F, comparing PCV7, PCV13, and PCV20. Titers decline as valency increases, with PCV20 lowest."}
 
 ## Additional serotypes in PCV13 and PCV20
 
@@ -58,21 +66,27 @@ patterns when comparing PCV13 and PCV20 responses.
 Following the primary series, PCV20 elicited diminished IgG responses to the six
 serotypes added in PCV13.
 
-![Post-primary IgG GMCs for the six serotypes added in PCV13](images/postprimary13IgG.png)
+![Post-primary IgG GMCs for the six serotypes added in PCV13](images/postprimary13IgG.png){fig-alt="Line chart of post-primary IgG geometric mean concentrations for serotypes 1, 3, 5, 6A, 7F, and 19A, comparing PCV13 and PCV20. PCV20 elicits lower GMCs than PCV13 for these serotypes."}
 
 ### Post-primary OPA GMTs
 
-![Post-primary OPA GMTs for the six serotypes added in PCV13](images/postprimary13stOPA.png)
+Functional antibody responses mirror the IgG results: PCV20 produces lower
+post-primary OPA titers than PCV13 for these six serotypes.
+
+![Post-primary OPA GMTs for the six serotypes added in PCV13](images/postprimary13stOPA.png){fig-alt="Line chart of post-primary OPA geometric mean titers for serotypes 1, 3, 5, 6A, 7F, and 19A, comparing PCV13 and PCV20. PCV20 produces lower titers than PCV13 for these serotypes."}
 
 ### Post-booster IgG GMCs
 
 Similar patterns appeared in post-booster measurements.
 
-![Post-booster IgG GMCs for the six serotypes added in PCV13](images/postbooster13IgG.png)
+![Post-booster IgG GMCs for the six serotypes added in PCV13](images/postbooster13IgG.png){fig-alt="Line chart of post-booster IgG geometric mean concentrations for serotypes 1, 3, 5, 6A, 7F, and 19A, comparing PCV13 and PCV20. PCV20 remains lower than PCV13 after the booster dose."}
 
 ### Post-booster OPA GMTs
 
-![Post-booster OPA GMTs for the six serotypes added in PCV13](images/postbooster13stOPA.png)
+The same PCV20-lower-than-PCV13 pattern is seen in post-booster OPA titers for
+these six serotypes.
+
+![Post-booster OPA GMTs for the six serotypes added in PCV13](images/postbooster13stOPA.png){fig-alt="Line chart of post-booster OPA geometric mean titers for serotypes 1, 3, 5, 6A, 7F, and 19A, comparing PCV13 and PCV20. PCV20 remains lower than PCV13 after the booster dose."}
 
 ## Interpretation
 

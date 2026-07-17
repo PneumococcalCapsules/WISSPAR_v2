@@ -19,6 +19,9 @@ you can also find the latest content on the [WISSPAR blog](blog.qmd).
           referrerpolicy="strict-origin-when-cross-origin"></iframe>
 </div>
 
+Closed captions are available via the player's CC control. A full text
+transcript of this walkthrough will be linked here once available.
+
 
 ## More resources
 

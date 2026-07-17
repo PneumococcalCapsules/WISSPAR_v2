@@ -11,10 +11,10 @@ export const REF_COLOR = "#2a78d6"; // blue — reserved for the reference
 // orange, aqua, violet, yellow, magenta, red, green — validated for CVD on white
 export const COMP_SLOTS = [
   "#eb6834",
-  "#1baf7a",
+  "#149669",
   "#4a3aa7",
-  "#c98a00",
-  "#e87ba4",
+  "#b97a00",
+  "#d25a82",
   "#e34948",
   "#008300",
 ];
@@ -53,7 +53,7 @@ export function comparatorColor(
 // Ink / chrome tokens (match styles.css light theme).
 export const INK = "#363636";
 export const INK_2 = "#6b6b6b";
-export const MUTED = "#8a887f";
+export const MUTED = "#6e6c64";
 export const GRID = "#eef0f2";
 export const AXIS = "#c9c8c0";
 export const CARD = "#ffffff";

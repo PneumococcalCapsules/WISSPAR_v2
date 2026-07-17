@@ -1,3 +1,32 @@
+/* Screen-reader-only text: visually hidden but still announced. */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Skip-to-content link: hidden off-screen until keyboard-focused. */
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 2000;
+  background: #fff;
+  color: #1a1a1a;
+  padding: 0.6rem 1rem;
+  border-radius: 0 0 8px 0;
+  font-weight: 600;
+}
+.skip-link:focus {
+  left: 0;
+}
+
 /* ----- Graphical View: interactive dashboard layout & spacing ----- */
 
 /* Give the tool room to breathe — widen the body only on the graphical view. */
@@ -153,7 +182,10 @@ body.lk-noscroll { overflow: hidden; }
   overflow-y: auto;
   background: #fff;
   box-shadow: -8px 0 32px rgba(0, 0, 0, .18);
-  outline: none;
+}
+.lk-drawer-panel:focus {
+  outline: 2px solid #2b6cb0;
+  outline-offset: -2px;
 }
 .lk-drawer-close {
   position: sticky; top: 0.6rem; float: right;

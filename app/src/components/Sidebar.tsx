@@ -1,15 +1,15 @@
 // Sidebar controls for the single-serotype head-to-head tool.
 
-import { useState } from "react";
+import { useId, useState } from "react";
 import { FilterState, Population } from "../filters";
 import { comparatorColor } from "../plot/chart";
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div className="wf-field">
-      <label className="wf-label">{label}</label>
+    <fieldset className="wf-field">
+      <legend className="wf-label">{label}</legend>
       {children}
-    </div>
+    </fieldset>
   );
 }
 
@@ -25,17 +25,26 @@ function Section({
   defaultOpen?: boolean;
 }) {
   const [open, setOpen] = useState(defaultOpen);
+  const bodyId = useId();
   return (
     <div className={`wf-section${open ? " open" : ""}`}>
       {collapsible ? (
-        <button type="button" className="wf-section-head wf-section-toggle" onClick={() => setOpen((o) => !o)}>
-          <span>{title}</span>
-          <span className="wf-caret" aria-hidden>{open ? "–" : "+"}</span>
-        </button>
+        <h3 className="wf-section-head-wrap">
+          <button
+            type="button"
+            className="wf-section-head wf-section-toggle"
+            onClick={() => setOpen((o) => !o)}
+            aria-expanded={open}
+            aria-controls={bodyId}
+          >
+            <span>{title}</span>
+            <span className="wf-caret" aria-hidden>{open ? "–" : "+"}</span>
+          </button>
+        </h3>
       ) : (
-        <div className="wf-section-head">{title}</div>
+        <h3 className="wf-section-head">{title}</h3>
       )}
-      {open && <div className="wf-section-body">{children}</div>}
+      {open && <div className="wf-section-body" id={bodyId}>{children}</div>}
     </div>
   );
 }

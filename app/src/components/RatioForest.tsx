@@ -47,7 +47,7 @@ export function RatioForest({
   emptyMessage: string;
   pooledSummary: boolean;
 }) {
-  const { show, hide, node } = useTooltip();
+  const { show, showAtElement, hide, node } = useTooltip();
   const [ref, W] = useContainerWidth(600);
 
   if (rows.length === 0) {
@@ -147,8 +147,10 @@ export function RatioForest({
           marks.push(
             <path key={`${r.key}-d${j}`}
               d={`M ${cx - 6} ${ly} L ${cx} ${ly - 6} L ${cx + 6} ${ly} L ${cx} ${ly + 6} Z`}
-              fill={col} stroke={CARD} strokeWidth={1.5}
-              onMouseMove={(e) => show(e, ratioTip(r, cp, rr, col))} onMouseLeave={hide}
+              fill={col} stroke={CARD} strokeWidth={1.5} tabIndex={0}
+              onMouseMove={(e) => show(e, ratioTip(r, cp, rr, col))}
+              onFocus={(e) => showAtElement(e.currentTarget, ratioTip(r, cp, rr, col))}
+              onMouseLeave={hide} onBlur={hide}
               style={{ cursor: "default" }} />,
           );
           marks.push(
@@ -159,8 +161,9 @@ export function RatioForest({
         } else {
           marks.push(
             <circle key={`${r.key}-p${j}`} cx={X(rr)} cy={ly} r={5} fill={col} stroke={CARD}
-              strokeWidth={1.5} onMouseMove={(e) => show(e, ratioTip(r, cp, rr, col))}
-              onMouseLeave={hide} style={{ cursor: "default" }} />,
+              strokeWidth={1.5} tabIndex={0} onMouseMove={(e) => show(e, ratioTip(r, cp, rr, col))}
+              onFocus={(e) => showAtElement(e.currentTarget, ratioTip(r, cp, rr, col))}
+              onMouseLeave={hide} onBlur={hide} style={{ cursor: "default" }} />,
           );
         }
       });
@@ -185,19 +188,17 @@ export function RatioForest({
         const col = comparatorColor(cv, refVax, allVax);
         const ly = y + POOL / 2;
         const cx = X(gm);
+        const pooledTip =
+          `<div class="wf-tip-h"><span class="wf-tip-sw" style="background:${col}"></span>Pooled — ${cv}</div>` +
+          `<div class="wf-tip-r">${g.pop.toLowerCase()}s, geo-mean ratio <b>${gm.toFixed(2)}×</b></div>` +
+          `<div class="wf-tip-r">${arr.length} paired arms</div>`;
         marks.push(
           <path key={`pd${g.pop}${cv}`}
             d={`M ${cx - 6} ${ly} L ${cx} ${ly - 6} L ${cx + 6} ${ly} L ${cx} ${ly + 6} Z`}
-            fill={col} stroke={CARD} strokeWidth={1.5}
-            onMouseMove={(e) =>
-              show(
-                e,
-                `<div class="wf-tip-h"><span class="wf-tip-sw" style="background:${col}"></span>Pooled — ${cv}</div>` +
-                  `<div class="wf-tip-r">${g.pop.toLowerCase()}s, geo-mean ratio <b>${gm.toFixed(2)}×</b></div>` +
-                  `<div class="wf-tip-r">${arr.length} paired arms</div>`,
-              )
-            }
-            onMouseLeave={hide} style={{ cursor: "default" }} />,
+            fill={col} stroke={CARD} strokeWidth={1.5} tabIndex={0}
+            onMouseMove={(e) => show(e, pooledTip)}
+            onFocus={(e) => showAtElement(e.currentTarget, pooledTip)}
+            onMouseLeave={hide} onBlur={hide} style={{ cursor: "default" }} />,
         );
         marks.push(
           <text key={`ptl${g.pop}${cv}`} x={ML - 12} y={ly + 3} textAnchor="end" fontSize={11.5}
@@ -219,7 +220,9 @@ export function RatioForest({
 
   return (
     <div className="wf-svg-scroll" ref={ref as React.RefObject<HTMLDivElement>}>
-      <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`} role="img" style={{ display: "block" }}>
+      <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`} role="img"
+        aria-label={`Head-to-head ratio forest plot: each comparator vaccine's value relative to reference ${refVax}, on a log scale where 1 means no difference. Tab to a point to hear its ratio.`}
+        style={{ display: "block" }}>
         <rect x={ML} y={MT} width={X(1) - ML} height={H - MT - MB} fill="rgba(42,120,214,0.07)" />
         {gridEls}
         <text x={X(1) - 8} y={MT - 12} textAnchor="end" fontSize={12} fontWeight={600} fill={MUTED}>
