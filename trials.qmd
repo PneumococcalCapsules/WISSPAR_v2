@@ -17,8 +17,8 @@ ClinicalTrials.gov link out to their full protocol record.
 </div>
 <div class="trials-count" id="trials-count"></div>
 <div style="overflow-x:auto;">
-<table id="trials-table">
-  <caption>Pneumococcal vaccine clinical trials in the WISSPAR database</caption>
+<p id="trials-table-desc" class="visually-hidden">Pneumococcal vaccine clinical trials in the WISSPAR database</p>
+<table id="trials-table" aria-describedby="trials-table-desc">
   <thead>
     <tr>
       <th data-key="study_id" scope="col">Trial</th>
