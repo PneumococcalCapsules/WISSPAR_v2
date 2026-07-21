@@ -26,10 +26,20 @@ export interface Row {
   dose_descr_sponsor: string;
 }
 
+// Some source rows carry a decorated serotype label, e.g. "Serotype 1 (Shared)"
+// or "Serotype 22F (Unique to V114)", instead of the bare code ("1", "22F").
+// Strip the decoration so every row for a given serotype uses the same value.
+export function normalizeSerotype(serotype: string): string {
+  const m = /^Serotype\s+(\S+)/i.exec(serotype);
+  return m ? m[1] : serotype;
+}
+
 export async function loadData(url: string): Promise<Row[]> {
   const res = await fetch(url);
   if (!res.ok) throw new Error(`Failed to load data (HTTP ${res.status})`);
-  return (await res.json()) as Row[];
+  const rows = (await res.json()) as Row[];
+  for (const r of rows) r.serotype = normalizeSerotype(r.serotype);
+  return rows;
 }
 
 // Natural / numeric-aware sort matching R's stringr::str_sort(numeric = TRUE).
